@@ -21,9 +21,9 @@ The script performs the following actions:
 The script is designed to work with recent Linux distributions based on **Debian**, **Red Hat**, and **SUSE**. The following specific distributions have been tested, using AWS:
 
 - Ubuntu 22.04
-- Debian 10 & 11
+- Debian 11
 - Red Hat Enterprise Linux 9.1
-- CentOS Stream 8 & 9
+- CentOS Stream 9
 - AlmaLinux 9.1
 - Amazon Linux 2 (note that Amaxon Linux 2023 doesn't currently work with YellowDog due to the requirement to use IMDSv2)
 - SUSE SLES 15 SP4
