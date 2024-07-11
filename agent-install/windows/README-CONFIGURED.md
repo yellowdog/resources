@@ -2,7 +2,7 @@
 
 This README provides instructions for installing and configuring the YellowDog Agent on Windows systems for use within Configured Worker Pools.
 
-There are four steps:
+There are three steps:
 
 1. Download the YellowDog Agent installer and install the service
 2. Populate the YellowDog Agent configuration file `application.yaml`
