@@ -23,11 +23,6 @@ msiexec /i yd-agent-5.4.5.msi /passive /log yd-agent-install.log SERVICE_STARTUP
 ```
 Installation will show a progress bar but will not require user interaction.
 
-```shell
-msiexec /i yd-agent-<AGENT_VERSION>.msi /passive /log yd-agent-install.log SERVICE_STARTUP=Automatic
-```
-Installation will show a progress bar but will not require user interaction.
-
 ## (2) Populate the YellowDog Agent Configuration File
 
 Overwrite the contents of the file `C:\Program Files\YellowDog\Agent\config\application.yaml` with the contents obtained from the YellowDog Portal:
