@@ -8,7 +8,7 @@ There are five steps:
 2. Install the YellowDog Agent service
 3. Populate the YellowDog Agent configuration file `application.yaml`
 4. Create a custom image (e.g., an AWS AMI) based on the Windows instance that can be used for subsequent provisioning.
-5. Register the image in a YellowDog Image Family of type Windows
+5. Register the image in a YellowDog Image Family of type `Windows`
 
 The installation steps have been tested on Windows Server 2019 and Windows Server 2022, on instances running in AWS.
 
@@ -19,9 +19,11 @@ The installation steps have been tested on Windows Server 2019 and Windows Serve
 1. Download the installer from https://www.cloudbase.it/downloads/CloudbaseInitSetup_Stable_x64.msi
 
 2. In the directory to which the file has been downloaded, run the installer from the command line as Administrator using the following command:
-```
+
+```shell
 msiexec /i CloudbaseInitSetup_Stable_x64.msi /passive /l*v cloudbase-init-install.log
 ```
+
 Installation will show a progress bar but will not require user interaction.
 
 ## (2) Download and Install the YellowDog Agent Service
