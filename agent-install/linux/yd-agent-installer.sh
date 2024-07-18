@@ -4,7 +4,7 @@
 
 # Set "YD_INSTALL_JAVA" to anything other than "TRUE" to disable
 # installing Java. The Agent startup script will expect to find
-# a Java (v11+) runtime at: /usr/bin/java.
+# a Java v21 runtime at: /usr/bin/java.
 YD_INSTALL_JAVA="${YD_INSTALL_JAVA:-TRUE}"
 
 # Set to "TRUE" for a Configured Worker Pool installation
@@ -51,13 +51,48 @@ if [[ $YD_INSTALL_JAVA == "TRUE" ]]; then
     "ubuntu" | "debian")
       export DEBIAN_FRONTEND=noninteractive
       apt-get update &> /dev/null
-      apt-get -y install openjdk-11-jre &> /dev/null
+      apt-get install -y wget apt-transport-https gpg &> /dev/null
+      wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor | tee /etc/apt/trusted.gpg.d/adoptium.gpg &> /dev/null
+      echo "deb https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list &> /dev/null
+      apt-get update &> /dev/null
+      apt-get -y install temurin-21-jre &> /dev/null
       ;;
-    "almalinux" | "centos" | "rhel" | "amzn" | "fedora")
-      yum install -y java-11 &> /dev/null
+    "almalinux" | "centos" | "rhel")
+      cat <<EOF > /etc/yum.repos.d/adoptium.repo
+[Adoptium]
+name=Adoptium
+baseurl=https://packages.adoptium.net/artifactory/rpm/rhel/\$releasever/\$basearch
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.adoptium.net/artifactory/api/gpg/key/public
+EOF
+      yum install -y temurin-21-jre &> /dev/null
+      ;;
+    "amzn")
+      cat <<EOF > /etc/yum.repos.d/adoptium.repo
+[Adoptium]
+name=Adoptium
+baseurl=https://packages.adoptium.net/artifactory/rpm/amazonlinux/\$releasever/\$basearch
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.adoptium.net/artifactory/api/gpg/key/public
+EOF
+      yum install -y temurin-21-jre &> /dev/null
+      ;;
+    "fedora")
+      cat <<EOF > /etc/yum.repos.d/adoptium.repo
+[Adoptium]
+name=Adoptium
+baseurl=https://packages.adoptium.net/artifactory/rpm/fedora/\$releasever/\$basearch
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.adoptium.net/artifactory/api/gpg/key/public
+EOF
+      yum install -y temurin-21-jre &> /dev/null
       ;;
     "sles" | "suse")
-      zypper install -y java-11-openjdk &> /dev/null
+      zypper ar -f https://packages.adoptium.net/artifactory/rpm/opensuse/$(. /etc/os-release; echo $VERSION_ID)/$(uname -m) adoptium &> /dev/null
+      zypper --gpg-auto-import-keys install -y temurin-21-jre &> /dev/null
       ;;
     *)
       yd_log "Unknown distribution ... exiting"

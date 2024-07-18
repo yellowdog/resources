@@ -9,14 +9,14 @@ The Bash script [yd-agent-installer.sh](yd-agent-installer.sh) can be used to in
 The script performs the following actions:
 
 1. Creates a new user `yd-agent` with home directory `/opt/yellowdog/agent`, and a data directory (for use during Task execution) at `/var/opt/yellowdog/agent`.
-2. Optionally installs Java 11 using the Linux distro's package manager.
+2. Optionally installs Java 21 using the Linux distro's package manager.
 3. Downloads the YellowDog Agent JAR file to the `yd-agent` home directory.
 4. Creates the Agent's configuration file (`application.yaml`) and its startup script.
 5. Configures the Agent as a `systemd` service and starts the service.
 6. Optionally adds `yd-agent` to the list of passwordless sudoers.
 7. Optionally adds an SSH public key for `yd-agent`.
 
-**Java installation can be suppressed** if Java (v11 or greater) is already installed, by setting the environment variable `YD_INSTALL_JAVA` in the script to anything other than `"TRUE"`. Note that the Agent startup script expects to find a Java v11+ runtime at `/usr/bin/java`: an existing installation can be verified by running `/usr/bin/java --version`, to check the java executable exists and that it satisfies the version requirement.
+**Java installation can be suppressed** if Java v21 is already installed, by setting the environment variable `YD_INSTALL_JAVA` in the script to anything other than `"TRUE"`. Note that the Agent startup script expects to find a Java v21 runtime at `/usr/bin/java`: an existing installation can be verified by running `/usr/bin/java --version`, to check the java executable exists and that it satisfies the version requirement.
 
 The script is designed to work with recent Linux distributions based on **Debian**, **Red Hat**, and **SUSE**. The following specific distributions have been tested, using AWS:
 
@@ -24,8 +24,9 @@ The script is designed to work with recent Linux distributions based on **Debian
 - Debian 11
 - Red Hat Enterprise Linux 9.1
 - CentOS Stream 9
+- Fedora 39
 - AlmaLinux 9.1
-- Amazon Linux 2 (note that Amaxon Linux 2023 doesn't currently work with YellowDog due to the requirement to use IMDSv2)
+- Amazon Linux 2 (note that Amazon Linux 2023 doesn't currently work with YellowDog due to the requirement to use IMDSv2)
 - SUSE SLES 15 SP4
 
 ## Task Types
