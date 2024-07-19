@@ -25,7 +25,7 @@ The script is designed to work with recent Linux distributions based on **Debian
 - Red Hat Enterprise Linux 9.1
 - CentOS Stream 9
 - AlmaLinux 9.1
-- Amazon Linux 2 (note that Amaxon Linux 2023 doesn't currently work with YellowDog due to the requirement to use IMDSv2)
+- Amazon Linux 2 (note that Amazon Linux 2023 doesn't currently work with YellowDog due to the requirement to use IMDSv2)
 - SUSE SLES 15 SP4
 
 ## Task Types
