@@ -47,51 +47,44 @@ yd_log "Using distro = $DISTRO"
 
 if [[ $YD_INSTALL_JAVA == "TRUE" ]]; then
   yd_log "Installing Java"
+  BASE_URL="https://packages.adoptium.net/artifactory"
+  KEY_URL="$BASE_URL/api/gpg/key/public"
   case $DISTRO in
     "ubuntu" | "debian")
       export DEBIAN_FRONTEND=noninteractive
-      apt-get update &> /dev/null
-      apt-get install -y wget apt-transport-https gpg &> /dev/null
-      wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor | tee /etc/apt/trusted.gpg.d/adoptium.gpg &> /dev/null
-      echo "deb https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list &> /dev/null
-      apt-get update &> /dev/null
-      apt-get -y install temurin-21-jre &> /dev/null
+      {
+        apt-get update
+        apt-get install -y wget apt-transport-https gpg
+        wget -qO - "$KEY_URL" | gpg --dearmor | tee /etc/apt/trusted.gpg.d/adoptium.gpg
+        echo "deb "$BASE_URL/deb" $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list
+        apt-get update
+        apt-get -y install temurin-21-jre
+      } &> /dev/null
       ;;
-    "almalinux" | "centos" | "rhel")
+    "almalinux" | "centos" | "rhel" | "amzn" | "fedora")
+      case $DISTRO in
+        "almalinux" | "centos")
+          REPO="rhel"
+          ;;
+        "amzn")
+          REPO="amazonlinux"
+          ;;
+        *)
+          REPO="$DISTRO"
+        ;;
+      esac
       cat <<EOF > /etc/yum.repos.d/adoptium.repo
 [Adoptium]
 name=Adoptium
-baseurl=https://packages.adoptium.net/artifactory/rpm/rhel/\$releasever/\$basearch
+baseurl=$BASE_URL/rpm/$REPO/\$releasever/\$basearch
 enabled=1
 gpgcheck=1
-gpgkey=https://packages.adoptium.net/artifactory/api/gpg/key/public
+gpgkey=$KEY_URL
 EOF
       yum install -y temurin-21-jre &> /dev/null
-      ;;
-    "amzn")
-      cat <<EOF > /etc/yum.repos.d/adoptium.repo
-[Adoptium]
-name=Adoptium
-baseurl=https://packages.adoptium.net/artifactory/rpm/amazonlinux/\$releasever/\$basearch
-enabled=1
-gpgcheck=1
-gpgkey=https://packages.adoptium.net/artifactory/api/gpg/key/public
-EOF
-      yum install -y temurin-21-jre &> /dev/null
-      ;;
-    "fedora")
-      cat <<EOF > /etc/yum.repos.d/adoptium.repo
-[Adoptium]
-name=Adoptium
-baseurl=https://packages.adoptium.net/artifactory/rpm/fedora/\$releasever/\$basearch
-enabled=1
-gpgcheck=1
-gpgkey=https://packages.adoptium.net/artifactory/api/gpg/key/public
-EOF
-      yum install -y temurin-21-jre &> /dev/null
-      ;;
+    ;;
     "sles" | "suse")
-      zypper ar -f https://packages.adoptium.net/artifactory/rpm/opensuse/$(. /etc/os-release; echo $VERSION_ID)/$(uname -m) adoptium &> /dev/null
+      zypper ar -f $BASE_URL/rpm/opensuse/$(. /etc/os-release; echo $VERSION_ID)/$(uname -m) adoptium &> /dev/null
       zypper --gpg-auto-import-keys install -y temurin-21-jre &> /dev/null
       ;;
     *)
