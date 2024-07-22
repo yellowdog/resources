@@ -28,14 +28,14 @@ Installation will show a progress bar but will not require user interaction.
 
 ## (2) Download and Install the YellowDog Agent Service
 
-1. The current version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-5.4.5.msi.
+1. The current version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-6.0.0.msi.
 
 The installer includes a self-contained, minimal version of Java, required for Agent execution.
 
 2. In the directory to which the file has been downloaded, run the installer from the command line as Administrator:
 
 ```shell
-msiexec /i yd-agent-5.4.5.msi /passive /log yd-agent-install.log SERVICE_STARTUP=Manual
+msiexec /i yd-agent-6.0.0.msi /passive /log yd-agent-install.log SERVICE_STARTUP=Manual
 ```
 Installation will show a progress bar but will not require user interaction.
 
