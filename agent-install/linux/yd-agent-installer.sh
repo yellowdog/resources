@@ -45,27 +45,21 @@ if [[ "$DISTRO" == "" ]]; then
 fi
 yd_log "Using distro = $DISTRO"
 
-if [[ $YD_INSTALL_JAVA == "TRUE" ]]; then
-  yd_log "Installing Java"
-  case $DISTRO in
-    "ubuntu" | "debian")
-      export DEBIAN_FRONTEND=noninteractive
-      apt-get update &> /dev/null
-      apt-get -y install openjdk-11-jre &> /dev/null
-      ;;
-    "almalinux" | "centos" | "rhel" | "amzn" | "fedora")
-      yum install -y java-11 &> /dev/null
-      ;;
-    "sles" | "suse")
-      zypper install -y java-11-openjdk &> /dev/null
-      ;;
-    *)
-      yd_log "Unknown distribution ... exiting"
-      exit 1
-      ;;
-  esac
-  yd_log "Java installed"
-fi
+ARCH=$(uname -m)
+yd-log "Using arch = $ARCH"
+
+case $DISTRO in
+  "ubuntu" | "debian")
+    PACKAGE="deb"
+    ;;
+  "almalinux" | "centos" | "rhel" | "amzn" | "fedora" | "sles" | "suse")
+    PACKAGE="rpm"
+    ;;
+  *)
+    yd_log "Unknown distribution ... exiting"
+    exit 1
+    ;;
+esac
 
 if [[ ! $(getent passwd $YD_AGENT_USER) ]]; then
   yd_log "Creating user/group: $YD_AGENT_USER"
@@ -101,11 +95,15 @@ fi
 ################################################################################
 
 yd_log "Starting Agent download"
+curl --fail -Ls "https://nexus.yellowdog.tech/service/
+rest/v1/search/assets/download?repository=raw-public&group=/agent/$PACKAGE/$ARCH
+&sort=name&direction=desc" -o /tmp/yd-agent.$PACKAGE
 
-curl --fail -Ls "https://nexus.yellowdog.tech/service/\
-rest/v1/search/assets/download?sort=version&repository=maven-public&maven.\
-groupId=co.yellowdog.platform&maven.artifactId=agent&maven.extension=jar" \
--o "$YD_AGENT_HOME/agent.jar"
+if [[ $PACKAGE == "deb" ]]; then
+  dpkg -i /tmp/yd-agent.$PACKAGE
+elif [[ $PACKAGE == "rpm" ]]; then
+  rpm -i /tmp/yd-agent.$PACKAGE
+fi
 
 yd_log "Agent download complete"
 
@@ -161,12 +159,6 @@ fi
 yd_log "Agent configuration file created"
 
 ################################################################################
-
-yd_log "Creating Agent startup script (start.sh)"
-cat > $YD_AGENT_HOME/start.sh << EOM
-#!/bin/sh
-/usr/bin/java -jar $YD_AGENT_HOME/agent.jar
-EOM
 
 yd_log "Setting directory permissions"
 chown $YD_AGENT_USER:$YD_AGENT_USER -R $YD_AGENT_HOME
