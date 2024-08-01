@@ -7,7 +7,6 @@ YD_CONFIGURED_WP="${YD_CONFIGURED_WP:-FALSE}"
 
 # Define user and directory names used by the Agent
 YD_AGENT_HOME="${YD_AGENT_HOME:-/opt/yellowdog/agent}"
-YD_AGENT_DATA="${YD_AGENT_DATA:-/var/opt/yellowdog/agent/data}"
 
 ################################################################################
 
