@@ -6,7 +6,6 @@
 YD_CONFIGURED_WP="${YD_CONFIGURED_WP:-FALSE}"
 
 # Define user and directory names used by the Agent
-YD_AGENT_USER="${YD_AGENT_USER:-yd-agent}"
 YD_AGENT_HOME="${YD_AGENT_HOME:-/opt/yellowdog/agent}"
 YD_AGENT_DATA="${YD_AGENT_DATA:-/var/opt/yellowdog/agent/data}"
 
@@ -75,11 +74,9 @@ yd_log "Agent download complete"
 yd_log "Writing new Agent configuration file (application.yaml)"
 yd_log "Inserting Task Type 'bash'"
 
-cat > $YD_AGENT_HOME/application.yaml << EOM
-yda:
-  taskTypes:
-    - name: "bash"
-      run: "/bin/bash"
+cat >> $YD_AGENT_HOME/application.yaml << EOM
+  - name: "bash"
+    run: "/bin/bash"
 EOM
 
 if [[ $YD_CONFIGURED_WP == "TRUE" ]]; then
