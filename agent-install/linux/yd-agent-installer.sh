@@ -89,6 +89,7 @@ if [[ $YD_CONFIGURED_WP == "TRUE" ]]; then
     YD_INSTANCE_ID="ID-$RANDOM-$RANDOM-$RANDOM"
   fi
   cat >> $YD_AGENT_HOME/application.yaml << EOM
+yda:
   token: "$YD_TOKEN"
   instanceId: "$YD_INSTANCE_ID"
   provider: "ON_PREMISE"
