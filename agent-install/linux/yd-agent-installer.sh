@@ -123,14 +123,6 @@ yd_log "Agent configuration file created"
 
 ################################################################################
 
-if [[ $YD_CONFIGURED_WP == "TRUE" ]]; then
-  yd-log "Reconfiguring Agent service (yd-agent) for configured worker pool"
-  sed -i "s/^After=cloud-final.service yd-promtail.service$/After=network.target/" \
-    /etc/systemd/system/yd-agent.service
-  sed -i "s/^WantedBy=cloud-init.target$/WantedBy=multi-user.target/" \
-    /etc/systemd/system/yd-agent.service
-fi
-
 yd_log "Starting Agent service (yd-agent)"
 systemctl start --no-block yd-agent &> /dev/null
 yd_log "Agent service started"
