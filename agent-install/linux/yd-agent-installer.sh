@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # YellowDog Agent installer script.
+YD_AGENT_REPO_URL="${YD_AGENT_REPO_URL:-https://nexus.yellowdog.tech/service/rest/v1/search/assets/download}"
+YD_AGENT_REPO_NAME="${YD_AGENT_REPO_NAME:-raw-public}"
 
 # Set to "TRUE" for a Configured Worker Pool installation
 YD_CONFIGURED_WP="${YD_CONFIGURED_WP:-FALSE}"
@@ -56,9 +58,8 @@ esac
 ################################################################################
 
 yd_log "Starting Agent download"
-curl --fail -Ls "https://nexus.yellowdog.tech/service/
-rest/v1/search/assets/download?repository=raw-public&group=/agent/$PACKAGE/$ARCH
-&sort=name&direction=desc" -o /tmp/yd-agent.$PACKAGE
+curl --fail -Ls "$YD_YD_AGENT_REPO_URL?repository=$YD_AGENT_REPO_NAME
+&group=/agent/$PACKAGE/$ARCH&sort=name&direction=desc" -o /tmp/yd-agent.$PACKAGE
 
 if [[ $PACKAGE == "deb" ]]; then
   dpkg -i /tmp/yd-agent.$PACKAGE
