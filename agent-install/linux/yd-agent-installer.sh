@@ -1,14 +1,18 @@
 #!/bin/bash
 
 # YellowDog Agent installer script.
-YD_AGENT_REPO_URL="${YD_AGENT_REPO_URL:-https://nexus.yellowdog.tech/service/rest/v1/search/assets/download}"
+
+# Set package repository details
+YD_AGENT_REPO_URL=\
+"${YD_AGENT_REPO_URL:-\
+https://nexus.yellowdog.tech/service/rest/v1/search/assets/download}"
 YD_AGENT_REPO_NAME="${YD_AGENT_REPO_NAME:-raw-public}"
 
 # Set to "TRUE" for a Configured Worker Pool installation
 YD_CONFIGURED_WP="${YD_CONFIGURED_WP:-FALSE}"
 
-# Define user and directory names used by the Agent
-YD_AGENT_HOME="${YD_AGENT_HOME:-/opt/yellowdog/agent}"
+# Set Agent home directory
+YD_AGENT_HOME="/opt/yellowdog/agent"
 
 ################################################################################
 
@@ -29,18 +33,26 @@ safe_grep() { grep "$@" || test $? = 1; }
 
 ################################################################################
 
-yd_log "Checking distro using 'ID_LIKE' from '/etc/os-release'"
-DISTRO=$(safe_grep "^ID_LIKE=" /etc/os-release | sed -e 's/ID_LIKE=//' \
+yd_log "Checking distro using 'ID' from '/etc/os-release'"
+DISTRO=$(safe_grep "^ID=" /etc/os-release | sed -e 's/ID=//' \
          | sed -e 's/"//g' | awk '{print $1}')
 if [[ "$DISTRO" == "" ]]; then
-  yd_log "Checking distro using 'ID' from '/etc/os-release'"
-  DISTRO=$(safe_grep "^ID=" /etc/os-release | sed -e 's/ID=//' \
+  yd_log "Checking distro using 'ID_LIKE' from '/etc/os-release'"
+  DISTRO=$(safe_grep "^ID_LIKE=" /etc/os-release | sed -e 's/ID_LIKE=//' \
            | sed -e 's/"//g')
 fi
 yd_log "Using distro = $DISTRO"
 
 ARCH=$(uname -m)
-yd-log "Using arch = $ARCH"
+if [[ "$ARCH" == "x86_64" ]]
+then
+  ARCH="amd64"
+fi
+if [[ "$ARCH" == "aarch64" ]]
+then
+  ARCH="arm64"
+fi
+yd_log "Using arch = $ARCH"
 
 case $DISTRO in
   "ubuntu" | "debian")
@@ -57,17 +69,21 @@ esac
 
 ################################################################################
 
-yd_log "Starting Agent download"
-curl --fail -Ls "$YD_YD_AGENT_REPO_URL?repository=$YD_AGENT_REPO_NAME
-&group=/agent/$PACKAGE/$ARCH&sort=name&direction=desc" -o /tmp/yd-agent.$PACKAGE
+PACKAGE_FILE="/tmp/yd-agent.$PACKAGE"
 
+yd_log "Starting Agent package download ($PACKAGE_FILE)"
+curl --fail -Ls "$YD_AGENT_REPO_URL?repository=$YD_AGENT_REPO_NAME\
+&group=/agent/$PACKAGE/$ARCH&sort=name&direction=desc" -o "$PACKAGE_FILE"
+
+yd_log "Installing Agent package"
 if [[ $PACKAGE == "deb" ]]; then
-  dpkg -i /tmp/yd-agent.$PACKAGE
+  dpkg -i "$PACKAGE_FILE"
 elif [[ $PACKAGE == "rpm" ]]; then
-  rpm -i /tmp/yd-agent.$PACKAGE
+  rpm -i "$PACKAGE_FILE"
 fi
 
-yd_log "Agent download complete"
+yd_log "Agent package installation complete"
+rm "$PACKAGE_FILE"
 
 ################################################################################
 
@@ -128,3 +144,5 @@ yd_log "Agent service started"
 ################################################################################
 
 yd_log "YellowDog Agent installation complete"
+
+################################################################################
