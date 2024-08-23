@@ -4,7 +4,7 @@ This README provides instructions for installing and configuring the YellowDog A
 
 There are five steps:
 
-1. Install CloudBase-Init
+1. Install CloudBase-Init (Optional - Required if running userdata scripts is desired)
 2. Install the YellowDog Agent service
 3. Populate the YellowDog Agent configuration file `application.yaml`
 4. Create a custom image (e.g., an AWS AMI) based on the Windows instance that can be used for subsequent provisioning.
@@ -12,7 +12,7 @@ There are five steps:
 
 The installation steps have been tested on Windows Server 2019 and Windows Server 2022, on instances running in AWS.
 
-## (1) Download and Install CloudBase-Init
+## (1) Download and Install CloudBase-Init (Optional)
 
 **[CloudBase-Init](https://cloudbase.it/cloudbase-init/)** runs at instance boot time and is used to set various configuration details for the YellowDog Agent. It's cloud-provider-agnostic and can also be used for other, non-YellowDog, instance preparation actions.
 
