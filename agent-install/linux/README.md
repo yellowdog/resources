@@ -146,24 +146,25 @@ The variables can be set directly in the script file itself or exported in the e
 
 The following set of variables is available for specifying the properties of an instance. Default values are provided for all properties except `YD_TOKEN`. For more information on the variables in the `application.yaml` file, please see the [YellowDog Documentation](https://docs.yellowdog.co/#/the-platform/using-variables-in-the-configuration-file).
 
-| Property                 | Description                                                                                                                                                               |
-|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `YD_TOKEN` (Required)    | This is the token that identifies the Configured Worker Pool to which this instance belongs, and which allows the Agent to connect to the platform.                       |
-| `YD_INSTANCE_ID`         | An instance identifier, which must be unique within a Worker Pool. By default, the hostname found in `/etc/hostname` is used; if this is empty, a random ID is generated. |
-| `YD_HOSTNAME`            | The hostname of the instance. By default, the hostname found in `/etc/hostname` is used.                                                                                  |
-| `YD_REGION`              | A string describing the region in which the instance is located. Empty by default.                                                                                        |
-| `YD_SOURCE_NAME`         | A string describing the 'source name' from which the instance comes, e.g.: "VMware 01". Empty by default.                                                                 |
-| `YD_INSTANCE_TYPE`       | A string describing the type of the instance. Empty by default.                                                                                                           |
-| `YD_WORKER_TAG`          | A string that tags the worker(s), used for matching Task Groups to Workers. Empty by default.                                                                             |
-| `YD_RAM`                 | The instance's RAM in GB. By default, the `MemTotal` value obtained from `/proc/meminfo`.                                                                                 |
-| `YD_VCPUS`               | The instance's VCPU count. By default, the value returned by `nproc`.                                                                                                     |
-| `YD_PUBLIC_IP`           | The instance's public IP address. Empty by default.                                                                                                                       |
-| `YD_PRIVATE_IP`          | The instance's private IP address. Empty by default.                                                                                                                      |
-| `YD_WORKER_TARGET_COUNT` | The number of workers to create per Node or per vCPU (as determined by `YD_WORKER_TARGET_TYPE`). By default, `1`.                                                         |
-| `YD_WORKER_TARGET_TYPE`  | Must be set to `"PER_NODE"` or `"PER_VCPU"`. By default, `"PER_NODE"`.                                                                                                    |
-| `YD_URL`                 | The URL of the YellowDog Platform's REST API. By default, `https://portal.yellowdog.co/api`.                                                                              |
-| `YD_SCHEDULE_ENABLED`    | Whether to start/stop the Agent's Workers on a defined schedule. Set to `"true"` to enable a schedule. By default, `"false"`.                                             |
-| `YD_SCHEDULE_STARTUP`    | A cron-like list of strings specifying when to start the Agent's Workers. By default, `['0 0 18 * * MON-FRI']`.                                                           |
-| `YD_SCHEDULE_SHUTDOWN`   | A cron-like list of strings specifying when to stop the Agent's Workers. By default, `['0 0 7 * * MON-FRI']`.                                                             |
+| Property                      | Description                                                                                                                                                               |
+|-------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `YD_TOKEN` (Required)         | This is the token that identifies the Configured Worker Pool to which this instance belongs, and which allows the Agent to connect to the platform.                       |
+| `YD_INSTANCE_ID`              | An instance identifier, which must be unique within a Worker Pool. By default, the hostname found in `/etc/hostname` is used; if this is empty, a random ID is generated. |
+| `YD_HOSTNAME`                 | The hostname of the instance. By default, the hostname found in `/etc/hostname` is used.                                                                                  |
+| `YD_REGION`                   | A string describing the region in which the instance is located. Empty by default.                                                                                        |
+| `YD_SOURCE_NAME`              | A string describing the 'source name' from which the instance comes, e.g.: "VMware 01". Empty by default.                                                                 |
+| `YD_INSTANCE_TYPE`            | A string describing the type of the instance. Empty by default.                                                                                                           |
+| `YD_WORKER_TAG`               | A string that tags the worker(s), used for matching Task Groups to Workers. Empty by default.                                                                             |
+| `YD_RAM`                      | The instance's RAM in GB. By default, the `MemTotal` value obtained from `/proc/meminfo`.                                                                                 |
+| `YD_VCPUS`                    | The instance's VCPU count. By default, the value returned by `nproc`.                                                                                                     |
+| `YD_PUBLIC_IP`                | The instance's public IP address. Empty by default.                                                                                                                       |
+| `YD_PRIVATE_IP`               | The instance's private IP address. Empty by default.                                                                                                                      |
+| `YD_WORKER_TARGET_COUNT`      | The number of workers to create per Node or per vCPU (as determined by `YD_WORKER_TARGET_TYPE`). By default, `1`.                                                         |
+| `YD_WORKER_TARGET_TYPE`       | Must be set to `"PER_NODE"` or `"PER_VCPU"`. By default, `"PER_NODE"`.                                                                                                    |
+| `YD_URL`                      | The URL of the YellowDog Platform's REST API. By default, `https://portal.yellowdog.co/api`.                                                                              |
+| `YD_SCHEDULE_ENABLED`         | Whether to start/stop the Agent's Workers on a defined schedule. Set to `"true"` to enable a schedule. By default, `"false"`.                                             |
+| `YD_SCHEDULE_STARTUP`         | A cron-like list of strings specifying when to start the Agent's Workers. By default, `['0 0 18 * * MON-FRI']`.                                                           |
+| `YD_SCHEDULE_SHUTDOWN`        | A cron-like list of strings specifying when to stop the Agent's Workers. By default, `['0 0 7 * * MON-FRI']`.                                                             |
+| `YD_AGENT_METADATA_PROVIDERS` | Set this to `NONE` for configured nodes or optionally specify one of `AWS`, `GOOGLE`, `AZURE`, `OCI` or `ALIBABA` to optimise Agent startup. Empty by default.            |
 
 The installer script is idempotent. This is useful if one wants to update the version of the Agent, etc. Note, however, that all files (including `application.yaml`) will be overwritten.
