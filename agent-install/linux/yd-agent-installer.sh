@@ -2,19 +2,20 @@
 
 # YellowDog Agent installer script.
 
-# Set "YD_INSTALL_JAVA" to anything other than "TRUE" to disable
-# installing Java. The Agent startup script will expect to find
-# a Java (v11+) runtime at: /usr/bin/java.
-YD_INSTALL_JAVA="${YD_INSTALL_JAVA:-TRUE}"
+# Set package repository details
+YD_AGENT_REPO_URL=\
+"${YD_AGENT_REPO_URL:-\
+https://nexus.yellowdog.tech/service/rest/v1/search/assets/download}"
+YD_AGENT_REPO_NAME="${YD_AGENT_REPO_NAME:-raw-public}"
 
 # Set to "TRUE" for a Configured Worker Pool installation
 YD_CONFIGURED_WP="${YD_CONFIGURED_WP:-FALSE}"
 
-# Define user and directory names used by the Agent
-YD_AGENT_USER="${YD_AGENT_USER:-yd-agent}"
-YD_AGENT_ROOT="${YD_AGENT_ROOT:-/opt/yellowdog}"
-YD_AGENT_HOME="${YD_AGENT_HOME:-/opt/yellowdog/agent}"
-YD_AGENT_DATA="${YD_AGENT_DATA:-/var/opt/yellowdog/agent/data}"
+# Set Agent home directory
+YD_AGENT_HOME="/opt/yellowdog/agent"
+
+# Set Agent metadata provider(s)
+YD_AGENT_METADATA_PROVIDERS="${YD_AGENT_METADATA_PROVIDERS:}"
 
 ################################################################################
 
@@ -35,90 +36,66 @@ safe_grep() { grep "$@" || test $? = 1; }
 
 ################################################################################
 
-yd_log "Checking distro using 'ID_LIKE' from '/etc/os-release'"
-DISTRO=$(safe_grep "^ID_LIKE=" /etc/os-release | sed -e 's/ID_LIKE=//' \
+yd_log "Checking distro using 'ID' from '/etc/os-release'"
+DISTRO=$(safe_grep "^ID=" /etc/os-release | sed -e 's/ID=//' \
          | sed -e 's/"//g' | awk '{print $1}')
 if [[ "$DISTRO" == "" ]]; then
-  yd_log "Checking distro using 'ID' from '/etc/os-release'"
-  DISTRO=$(safe_grep "^ID=" /etc/os-release | sed -e 's/ID=//' \
+  yd_log "Checking distro using 'ID_LIKE' from '/etc/os-release'"
+  DISTRO=$(safe_grep "^ID_LIKE=" /etc/os-release | sed -e 's/ID_LIKE=//' \
            | sed -e 's/"//g')
 fi
 yd_log "Using distro = $DISTRO"
 
-if [[ $YD_INSTALL_JAVA == "TRUE" ]]; then
-  yd_log "Installing Java"
-  case $DISTRO in
-    "ubuntu" | "debian")
-      export DEBIAN_FRONTEND=noninteractive
-      apt-get update &> /dev/null
-      apt-get -y install openjdk-11-jre &> /dev/null
-      ;;
-    "almalinux" | "centos" | "rhel" | "amzn" | "fedora")
-      yum install -y java-11 &> /dev/null
-      ;;
-    "sles" | "suse")
-      zypper install -y java-11-openjdk &> /dev/null
-      ;;
-    *)
-      yd_log "Unknown distribution ... exiting"
-      exit 1
-      ;;
-  esac
-  yd_log "Java installed"
+ARCH=$(uname -m)
+if [[ "$ARCH" == "x86_64" ]]
+then
+  ARCH="amd64"
 fi
+if [[ "$ARCH" == "aarch64" ]]
+then
+  ARCH="arm64"
+fi
+yd_log "Using arch = $ARCH"
 
-if [[ ! $(getent passwd $YD_AGENT_USER) ]]; then
-  yd_log "Creating user/group: $YD_AGENT_USER"
-  mkdir -p $YD_AGENT_ROOT
-  case $DISTRO in
-    "ubuntu" | "debian")
-      adduser $YD_AGENT_USER --home $YD_AGENT_HOME --disabled-password \
-              --quiet --gecos ""
-      ADMIN_GRP="sudo"
-      ;;
-    "almalinux" | "centos" | "rhel" | "amzn" | "fedora")
-      adduser $YD_AGENT_USER --home-dir $YD_AGENT_HOME
-      ADMIN_GRP="wheel"
-      ;;
-    "sles" | "suse")
-      if [[ ! $(getent group $YD_AGENT_USER) ]]; then
-        groupadd $YD_AGENT_USER
-      fi
-      useradd $YD_AGENT_USER --home-dir $YD_AGENT_HOME --create-home \
-              -g $YD_AGENT_USER
-      ADMIN_GRP="wheel"
-      ;;
-    *)
-      yd_log "Unknown distribution ... exiting"
-      exit 1
-      ;;
-  esac
-  yd_log "Creating Agent data directories / setting permissions"
-  mkdir -p "$YD_AGENT_DATA/actions" "$YD_AGENT_DATA/workers"
-  chown -R $YD_AGENT_USER:$YD_AGENT_USER $YD_AGENT_HOME $YD_AGENT_DATA
-fi
+case $DISTRO in
+  "ubuntu" | "debian")
+    PACKAGE="deb"
+    ;;
+  "almalinux" | "centos" | "rhel" | "amzn" | "fedora" | "sles" | "suse")
+    PACKAGE="rpm"
+    ;;
+  *)
+    yd_log "Unknown distribution ... exiting"
+    exit 1
+    ;;
+esac
 
 ################################################################################
 
-yd_log "Starting Agent download"
+PACKAGE_FILE="/tmp/yd-agent.$PACKAGE"
 
-curl --fail -Ls "https://nexus.yellowdog.tech/service/\
-rest/v1/search/assets/download?sort=version&repository=maven-public&maven.\
-groupId=co.yellowdog.platform&maven.artifactId=agent&maven.extension=jar" \
--o "$YD_AGENT_HOME/agent.jar"
+yd_log "Starting Agent package download ($PACKAGE_FILE)"
+curl --fail -Ls "$YD_AGENT_REPO_URL?repository=$YD_AGENT_REPO_NAME\
+&group=/agent/$PACKAGE/$ARCH&sort=name&direction=desc" -o "$PACKAGE_FILE"
 
-yd_log "Agent download complete"
+yd_log "Installing Agent package"
+if [[ $PACKAGE == "deb" ]]; then
+  dpkg -i "$PACKAGE_FILE"
+elif [[ $PACKAGE == "rpm" ]]; then
+  rpm -i "$PACKAGE_FILE"
+fi
+
+yd_log "Agent package installation complete"
+rm "$PACKAGE_FILE"
 
 ################################################################################
 
 yd_log "Writing new Agent configuration file (application.yaml)"
 yd_log "Inserting Task Type 'bash'"
 
-cat > $YD_AGENT_HOME/application.yaml << EOM
-yda:
-  taskTypes:
-    - name: "bash"
-      run: "/bin/bash"
+cat >> $YD_AGENT_HOME/application.yaml << EOM
+  - name: "bash"
+    run: "/bin/bash"
 EOM
 
 if [[ $YD_CONFIGURED_WP == "TRUE" ]]; then
@@ -132,6 +109,7 @@ if [[ $YD_CONFIGURED_WP == "TRUE" ]]; then
     YD_INSTANCE_ID="ID-$RANDOM-$RANDOM-$RANDOM"
   fi
   cat >> $YD_AGENT_HOME/application.yaml << EOM
+yda:
   token: "$YD_TOKEN"
   instanceId: "$YD_INSTANCE_ID"
   provider: "ON_PREMISE"
@@ -162,62 +140,9 @@ yd_log "Agent configuration file created"
 
 ################################################################################
 
-yd_log "Creating Agent startup script (start.sh)"
-cat > $YD_AGENT_HOME/start.sh << EOM
-#!/bin/sh
-/usr/bin/java -jar $YD_AGENT_HOME/agent.jar
-EOM
-
-yd_log "Setting directory permissions"
-chown $YD_AGENT_USER:$YD_AGENT_USER -R $YD_AGENT_HOME
-chmod ug+x $YD_AGENT_HOME/start.sh
-
-################################################################################
-
-yd_log "Setting up the Agent systemd service"
-
-if [[ ! $YD_CONFIGURED_WP == "TRUE" ]]; then
-  SD_AFTER="cloud-final.service"
-  SD_WANTED_BY="cloud-init.target"
-else
-  SD_AFTER="network.target"
-  SD_WANTED_BY="multi-user.target"
-fi
-
-cat > /etc/systemd/system/yd-agent.service << EOM
-[Unit]
-Description=YellowDog Agent
-After=$SD_AFTER
-
-[Service]
-User=$YD_AGENT_USER
-WorkingDirectory=$YD_AGENT_HOME
-ExecStart=$YD_AGENT_HOME/start.sh
-SuccessExitStatus=143
-TimeoutStopSec=10
-Restart=on-failure
-RestartSec=5
-LimitMEMLOCK=8388608
-
-[Install]
-WantedBy=$SD_WANTED_BY
-EOM
-
-mkdir -p /etc/systemd/system/yd-agent.service.d
-
-cat > /etc/systemd/system/yd-agent.service.d/yd-agent.conf << EOM
-[Service]
-Environment="YD_AGENT_HOME=$YD_AGENT_HOME"
-Environment="YD_AGENT_DATA=$YD_AGENT_DATA"
-EOM
-
-yd_log "Systemd files created"
-
-yd_log "(Stopping,) enabling & starting Agent service (yd-agent)"
-systemctl stop yd-agent &> /dev/null
-systemctl enable yd-agent &> /dev/null
+yd_log "Starting Agent service (yd-agent)"
 systemctl start --no-block yd-agent &> /dev/null
-yd_log "Agent service (stopped,) enabled and (re)started"
+yd_log "Agent service started"
 
 ################################################################################
 

@@ -4,7 +4,7 @@ This README provides instructions for installing and configuring the YellowDog A
 
 There are five steps:
 
-1. Install CloudBase-Init
+1. Install CloudBase-Init (Optional - Required if running userdata scripts is desired)
 2. Install the YellowDog Agent service
 3. Populate the YellowDog Agent configuration file `application.yaml`
 4. Create a custom image (e.g., an AWS AMI) based on the Windows instance that can be used for subsequent provisioning.
@@ -12,7 +12,7 @@ There are five steps:
 
 The installation steps have been tested on Windows Server 2019 and Windows Server 2022, on instances running in AWS.
 
-## (1) Download and Install CloudBase-Init
+## (1) Download and Install CloudBase-Init (Optional)
 
 **[CloudBase-Init](https://cloudbase.it/cloudbase-init/)** runs at instance boot time and is used to set various configuration details for the YellowDog Agent. It's cloud-provider-agnostic and can also be used for other, non-YellowDog, instance preparation actions.
 
@@ -28,16 +28,27 @@ Installation will show a progress bar but will not require user interaction.
 
 ## (2) Download and Install the YellowDog Agent Service
 
-1. The current version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-5.4.5.msi.
+1. The current version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-5.4.18.msi.
 
 The installer includes a self-contained, minimal version of Java, required for Agent execution.
+
+To download the latest version from the command line:
+
+```shell
+Invoke-WebRequest -Uri 'https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-5.4.18.msi' -OutFile yd-agent-5.4.18.msi
+```
 
 2. In the directory to which the file has been downloaded, run the installer from the command line as Administrator:
 
 ```shell
-msiexec /i yd-agent-5.4.5.msi /passive /log yd-agent-install.log SERVICE_STARTUP=Manual
+msiexec /i yd-agent-5.4.18.msi /passive /log yd-agent-install.log YD_AGENT_METADATA_PROVIDERS=AWS,GOOGLE,OCI,AZURE,ALIBABA
 ```
 Installation will show a progress bar but will not require user interaction.
+
+The `YD_AGENT_METADATA_PROVIDERS` is an optional parameter which can be used to optimise the agent startup. 
+Set it with the appropriate provider name(s) for your image from these options:
+
+`AWS`, `GOOGLE`, `AZURE`, `OCI` or `ALIBABA`
 
 ## (3) Populate the YellowDog Agent Configuration File
 
