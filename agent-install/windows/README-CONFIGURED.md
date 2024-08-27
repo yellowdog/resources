@@ -12,7 +12,7 @@ The installation steps have been tested on Windows Server 2019 and Windows Serve
 
 ## (1) Download and Install the YellowDog Agent Service
 
-1. The latest version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-5.4.5.msi.
+1. The latest version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-5.4.18.msi.
 
 The installer includes a self-contained, minimal version of Java, required for Agent execution.
 
