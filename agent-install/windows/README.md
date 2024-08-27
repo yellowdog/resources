@@ -41,7 +41,7 @@ Invoke-WebRequest -Uri 'https://nexus.yellowdog.tech/repository/raw-public/agent
 2. In the directory to which the file has been downloaded, run the installer from the command line as Administrator:
 
 ```shell
-msiexec /i yd-agent-5.4.5.msi /passive /log yd-agent-install.log YD_AGENT_METADATA_PROVIDERS=AWS,GOOGLE,OCI,AZURE,ALIBABA
+msiexec /i yd-agent-5.4.18.msi /passive /log yd-agent-install.log YD_AGENT_METADATA_PROVIDERS=AWS,GOOGLE,OCI,AZURE,ALIBABA
 ```
 Installation will show a progress bar but will not require user interaction.
 

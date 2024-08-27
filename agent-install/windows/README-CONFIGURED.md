@@ -19,7 +19,7 @@ The installer includes a self-contained, minimal version of Java, required for A
 2. In the directory to which the file has been downloaded, run the installer from the command line as Administrator:
 
 ```shell
-msiexec /i yd-agent-5.4.5.msi /passive /log yd-agent-install.log SERVICE_STARTUP=Manual YD_AGENT_METADATA_PROVIDERS=NONE
+msiexec /i yd-agent-5.4.18.msi /passive /log yd-agent-install.log SERVICE_STARTUP=Manual YD_AGENT_METADATA_PROVIDERS=NONE
 ```
 Installation will show a progress bar but will not require user interaction.
 
