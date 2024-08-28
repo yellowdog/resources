@@ -15,7 +15,7 @@ YD_CONFIGURED_WP="${YD_CONFIGURED_WP:-FALSE}"
 YD_AGENT_HOME="/opt/yellowdog/agent"
 
 # Set Agent metadata provider(s)
-YD_AGENT_METADATA_PROVIDERS="${YD_AGENT_METADATA_PROVIDERS:}"
+YD_AGENT_METADATA_PROVIDERS="${YD_AGENT_METADATA_PROVIDERS:-}"
 
 ################################################################################
 
