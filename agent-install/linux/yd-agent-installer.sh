@@ -121,7 +121,6 @@ yda:
   vcpus: "${YD_VCPUS:-$(nproc)}"
   ram: "${YD_RAM:-$(awk '/MemTotal/ {printf("%.1f", \
                     int(0.5 + ($2*2 / 1024^2)) / 2)}' /proc/meminfo)}"
-  workerTag: "${YD_WORKER_TAG:-}"
   privateIpAddress: "${YD_PRIVATE_IP:-}"
   publicIpAddress: "${YD_PUBLIC_IP:-}"
   createWorkers:
