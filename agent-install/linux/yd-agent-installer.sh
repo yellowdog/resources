@@ -85,15 +85,16 @@ elif [[ $PACKAGE == "rpm" ]]; then
   rpm -i "$PACKAGE_FILE"
 fi
 
-yd_log "Agent package installation complete"
+yd_log "Agent package installation complete ... removing Agent package"
 rm "$PACKAGE_FILE"
 
 ################################################################################
 
-yd_log "Writing new Agent configuration file (application.yaml)"
-yd_log "Inserting Task Type 'bash'"
+YD_AGENT_CONFIG="$YD_AGENT_HOME/application.yaml"
 
-cat >> $YD_AGENT_HOME/application.yaml << EOM
+yd_log "Writing new Agent configuration $YD_AGENT_CONFIG with 'bash' task type"
+cat > $YD_AGENT_CONFIG << EOM
+yda.taskTypes:
   - name: "bash"
     run: "/bin/bash"
 EOM
@@ -140,7 +141,7 @@ yd_log "Agent configuration file created"
 
 ################################################################################
 
-yd_log "Starting Agent service (yd-agent)"
+yd_log "(Re-)starting Agent service (yd-agent)"
 systemctl start --no-block yd-agent &> /dev/null
 yd_log "Agent service started"
 
