@@ -85,7 +85,7 @@ elif [[ $PACKAGE == "rpm" ]]; then
   rpm -i "$PACKAGE_FILE"
 fi
 
-yd_log "Agent package installation complete ... removing Agent package"
+yd_log "Agent package installation complete ... removing package"
 rm "$PACKAGE_FILE"
 
 ################################################################################
@@ -150,7 +150,7 @@ yd_log "Agent configuration file created"
 ################################################################################
 
 yd_log "(Re-)starting Agent service (yd-agent)"
-systemctl start --no-block yd-agent &> /dev/null
+systemctl restart --no-block yd-agent.service &> /dev/null
 yd_log "Agent service started"
 
 ################################################################################
