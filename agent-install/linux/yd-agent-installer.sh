@@ -85,15 +85,24 @@ elif [[ $PACKAGE == "rpm" ]]; then
   rpm -i "$PACKAGE_FILE"
 fi
 
-yd_log "Agent package installation complete"
+yd_log "Agent package installation complete ... removing package"
 rm "$PACKAGE_FILE"
 
 ################################################################################
 
-yd_log "Writing new Agent configuration file (application.yaml)"
-yd_log "Inserting Task Type 'bash'"
+YD_AGENT_CONFIG="$YD_AGENT_HOME/application.yaml"
 
-cat >> $YD_AGENT_HOME/application.yaml << EOM
+if [[ -f "$YD_AGENT_CONFIG" ]]
+then
+  YD_CONFIG_BACKUP="$YD_AGENT_CONFIG.backup.$(date -u "+%Y-%m-%d_%H%M%S_UTC")"
+  yd_log "Saving existing Agent configuration as $YD_CONFIG_BACKUP"
+  cp "$YD_AGENT_CONFIG" "$YD_CONFIG_BACKUP"
+  chown yd-agent:yd-agent "$YD_CONFIG_BACKUP"
+fi
+
+yd_log "Writing new Agent configuration $YD_AGENT_CONFIG with 'bash' task type"
+cat > $YD_AGENT_CONFIG << EOM
+yda.taskTypes:
   - name: "bash"
     run: "/bin/bash"
 EOM
@@ -139,8 +148,8 @@ yd_log "Agent configuration file created"
 
 ################################################################################
 
-yd_log "Starting Agent service (yd-agent)"
-systemctl start --no-block yd-agent &> /dev/null
+yd_log "(Re-)starting Agent service (yd-agent)"
+systemctl restart --no-block yd-agent.service &> /dev/null
 yd_log "Agent service started"
 
 ################################################################################
