@@ -154,7 +154,6 @@ The following set of variables is available for specifying the properties of an 
 | `YD_REGION`                   | A string describing the region in which the instance is located. Empty by default.                                                                                        |
 | `YD_SOURCE_NAME`              | A string describing the 'source name' from which the instance comes, e.g.: "VMware 01". Empty by default.                                                                 |
 | `YD_INSTANCE_TYPE`            | A string describing the type of the instance. Empty by default.                                                                                                           |
-| `YD_WORKER_TAG`               | A string that tags the worker(s), used for matching Task Groups to Workers. Empty by default.                                                                             |
 | `YD_RAM`                      | The instance's RAM in GB. By default, the `MemTotal` value obtained from `/proc/meminfo`.                                                                                 |
 | `YD_VCPUS`                    | The instance's VCPU count. By default, the value returned by `nproc`.                                                                                                     |
 | `YD_PUBLIC_IP`                | The instance's public IP address. Empty by default.                                                                                                                       |
