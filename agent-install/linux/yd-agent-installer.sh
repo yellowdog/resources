@@ -80,7 +80,8 @@ curl --fail -Ls "$YD_AGENT_REPO_URL?repository=$YD_AGENT_REPO_NAME\
 
 yd_log "Installing Agent package"
 if [[ $PACKAGE == "deb" ]]; then
-  apt-get install -o DPkg::Lock::Timeout=-1 "$PACKAGE_FILE"
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get install -y -o DPkg::Lock::Timeout=-1 "$PACKAGE_FILE" &> /dev/null
 elif [[ $PACKAGE == "rpm" ]]; then
   rpm -i "$PACKAGE_FILE"
 fi
