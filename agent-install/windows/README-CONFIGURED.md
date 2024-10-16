@@ -4,22 +4,28 @@ This README provides instructions for installing and configuring the YellowDog A
 
 There are three steps:
 
-1. Download the YellowDog Agent installer and install the service
+1. Download and install the YellowDog Agent
 2. Populate the YellowDog Agent configuration file `application.yaml`
 3. Start the YellowDog Agent service
 
 The installation steps have been tested on Windows Server 2019 and Windows Server 2022, but should also work on recent Desktop versions of Windows.
 
-## (1) Download and Install the YellowDog Agent Service
+## (1) Download and Install the YellowDog Agent
 
-1. The latest version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-5.4.22.msi.
+1. The latest version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-6.0.4.msi.
 
 The installer includes a self-contained, minimal version of Java, required for Agent execution.
+
+To download the latest version from the command line:
+
+```shell
+Invoke-WebRequest -Uri 'https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-6.0.4.msi' -OutFile yd-agent-6.0.4.msi
+```
 
 2. In the directory to which the file has been downloaded, run the installer from the command line as Administrator:
 
 ```shell
-msiexec /i yd-agent-5.4.22.msi /passive /log yd-agent-install.log SERVICE_STARTUP=Manual YD_AGENT_METADATA_PROVIDERS=NONE
+msiexec /i yd-agent-6.0.4.msi /passive /log yd-agent-install.log SERVICE_STARTUP=Manual YD_AGENT_METADATA_PROVIDERS=NONE
 ```
 Installation will show a progress bar but will not require user interaction.
 

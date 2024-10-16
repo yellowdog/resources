@@ -4,8 +4,8 @@ This README provides instructions for installing and configuring the YellowDog A
 
 There are five steps:
 
-1. Install CloudBase-Init (Optional - Required if running userdata scripts is desired)
-2. Install the YellowDog Agent service
+1. Install CloudBase-Init: Optional: only required if there's a need to run user-supplied (userdata) scripts at instance boot time
+2. Install the YellowDog Agent
 3. Populate the YellowDog Agent configuration file `application.yaml`
 4. Create a custom image (e.g., an AWS AMI) based on the Windows instance that can be used for subsequent provisioning.
 5. Register the image in a YellowDog Image Family of type `Windows`
@@ -14,7 +14,7 @@ The installation steps have been tested on Windows Server 2019 and Windows Serve
 
 ## (1) Download and Install CloudBase-Init (Optional)
 
-**[CloudBase-Init](https://cloudbase.it/cloudbase-init/)** runs at instance boot time and is used to set various configuration details for the YellowDog Agent. It's cloud-provider-agnostic and can also be used for other, non-YellowDog, instance preparation actions.
+**[CloudBase-Init](https://cloudbase.it/cloudbase-init/)** runs at instance boot time and is used to execute user-supplied scripts/actions on the instance.
 
 1. Download the installer from https://www.cloudbase.it/downloads/CloudbaseInitSetup_Stable_x64.msi
 
@@ -28,27 +28,28 @@ Installation will show a progress bar but will not require user interaction.
 
 ## (2) Download and Install the YellowDog Agent Service
 
-1. The current version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-5.4.22.msi.
+1. The current version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-6.0.4.msi.
 
 The installer includes a self-contained, minimal version of Java, required for Agent execution.
 
 To download the latest version from the command line:
 
 ```shell
-Invoke-WebRequest -Uri 'https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-5.4.22.msi' -OutFile yd-agent-5.4.22.msi
+Invoke-WebRequest -Uri 'https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-6.0.4.msi' -OutFile yd-agent-6.0.4.msi
 ```
 
 2. In the directory to which the file has been downloaded, run the installer from the command line as Administrator:
 
 ```shell
-msiexec /i yd-agent-5.4.22.msi /passive /log yd-agent-install.log YD_AGENT_METADATA_PROVIDERS=AWS,GOOGLE,OCI,AZURE,ALIBABA
+msiexec /i yd-agent-6.0.4.msi /passive /log yd-agent-install.log
 ```
 Installation will show a progress bar but will not require user interaction.
 
-The `YD_AGENT_METADATA_PROVIDERS` is an optional parameter which can be used to optimise the agent startup. 
-Set it with the appropriate provider name(s) for your image from these options:
+An optional `YD_AGENT_METADATA_PROVIDERS` argument can be supplied to the installer to optimise Agent startup. Set it with the appropriate provider name(s) for your image from these options: `AWS`, `GOOGLE`, `AZURE`, `OCI` or `ALIBABA`, e.g.:
 
-`AWS`, `GOOGLE`, `AZURE`, `OCI` or `ALIBABA`
+```shell
+msiexec /i yd-agent-6.0.4.msi /passive /log yd-agent-install.log YD_AGENT_METADATA_PROVIDERS=AWS
+```
 
 ## (3) Populate the YellowDog Agent Configuration File
 
@@ -100,4 +101,4 @@ The Windows custom image must be registered within a YellowDog Windows Image Fam
 
 Add a Windows Image Family (named, e.g., `win-yd-agent` in namespace `win-test`), an Image Group (e.g., `v5_0_3`) and an image (e.g., `win-2022-eu-west-2`) pointing to the image ID of the custom image you've created.
 
-In provisioning requests, the ID or name (`yd/win-test/win-yd-agent`) of the Image Family you've just created should be used, and YellowDog will then automatically select the correct image (the most recent version applicable to the cloud provider and region).
+In provisioning requests, the ID or name (e.g., `yd/win-test/win-yd-agent`) of the Image Family you've just created should be used, and YellowDog will then automatically select the correct image (the most recent version applicable to the cloud provider and region).
