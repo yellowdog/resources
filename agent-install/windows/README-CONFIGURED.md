@@ -16,7 +16,7 @@ The installation steps have been tested on Windows Server 2019 and Windows Serve
 
 The installer includes a self-contained, minimal version of Java, required for Agent execution.
 
-To download the latest version from the command line:
+To download the latest version using the command line:
 
 ```shell
 Invoke-WebRequest -Uri 'https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-6.0.4.msi' -OutFile yd-agent-6.0.4.msi
