@@ -61,7 +61,7 @@ case $DISTRO in
   "ubuntu" | "debian")
     PACKAGE="deb"
     ;;
-  "almalinux" | "centos" | "rhel" | "amzn" | "fedora" | "sles" | "suse")
+  "almalinux" | "centos" | "rhel" | "amzn" | "fedora" | "sles" | "suse" | "rocky" )
     PACKAGE="rpm"
     ;;
   *)
