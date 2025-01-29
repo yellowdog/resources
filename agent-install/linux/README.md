@@ -12,6 +12,7 @@ The script is designed to work with recent Linux distributions based on **Debian
 - Debian 11
 - Debian 12
 - Red Hat Enterprise Linux 9.1
+- Rocky Linux 9
 - SUSE SLES 15 SP4
 - Ubuntu 20.04
 - Ubuntu 22.04
