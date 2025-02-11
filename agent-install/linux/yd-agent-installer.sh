@@ -101,11 +101,12 @@ then
   chown yd-agent:yd-agent "$YD_CONFIG_BACKUP"
 fi
 
-yd_log "Writing new Agent configuration $YD_AGENT_CONFIG with 'bash' task type"
+yd_log "Writing new Agent configuration $YD_AGENT_CONFIG with 'bash' task type and default metrics script"
 cat > $YD_AGENT_CONFIG << EOM
 yda.taskTypes:
   - name: "bash"
     run: "/bin/bash"
+yda.metrics.script-path: "/opt/yellowdog/agent/bin/metrics.sh"
 EOM
 
 if [[ $YD_CONFIGURED_WP == "TRUE" ]]; then
