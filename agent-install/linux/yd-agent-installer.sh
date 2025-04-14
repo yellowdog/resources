@@ -107,6 +107,7 @@ yda.taskTypes:
   - name: "bash"
     run: "/bin/bash"
 yda.metrics.script-path: "/opt/yellowdog/agent/bin/metrics.sh"
+yda.data-client.rclone-binary-path: "/opt/yellowdog/agent/bin/rclone"
 EOM
 
 if [[ $YD_CONFIGURED_WP == "TRUE" ]]; then
