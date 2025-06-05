@@ -12,20 +12,20 @@ The installation steps have been tested on Windows Server 2019 and Windows Serve
 
 ## (1) Download and Install the YellowDog Agent
 
-1. The latest version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-7.1.0.msi.
+1. The latest version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-7.4.2.msi.
 
 The installer includes a self-contained, minimal version of Java, required for Agent execution.
 
 To download the latest version using the command line:
 
 ```shell
-Invoke-WebRequest -Uri 'https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-7.1.0.msi' -OutFile yd-agent-7.1.0.msi
+Invoke-WebRequest -Uri 'https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-7.4.2.msi' -OutFile yd-agent-7.4.2.msi
 ```
 
 2. In the directory to which the file has been downloaded, run the installer from the command line as Administrator:
 
 ```shell
-msiexec /i yd-agent-7.1.0.msi /passive /log yd-agent-install.log SERVICE_STARTUP=Manual YD_AGENT_METADATA_PROVIDERS=NONE
+msiexec /i yd-agent-7.4.2.msi /passive /log yd-agent-install.log SERVICE_STARTUP=Manual YD_AGENT_METADATA_PROVIDERS=NONE
 ```
 Installation will show a progress bar but will not require user interaction.
 
@@ -75,7 +75,7 @@ yda:
   services-schema.default-url: "https://portal.yellowdog.co/api/"
 
 # The pattern used when logging. This is a default value and can be changed.
-logging.pattern.console: "Worker [%10.10thread] %-5level [%40logger{40}] %message [%class{0}:%method\\(\\):%line]%n"
+logging.pattern.console: "%d{yyyy-MM-dd HH:mm:ss.SSS} Worker[%10.10thread] %-5level[%40logger{40}] %message [%class{0}:%method:%line]%n"
 ```
 
 Adjust the contents of the `application.yaml` file as required -- e.g., to add your own Task Types. For full details of the available options please see the [YellowDog Documentation](https://docs.yellowdog.co/#/the-platform/using-variables-in-the-configuration-file).
