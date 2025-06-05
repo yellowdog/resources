@@ -21,7 +21,7 @@ The installation steps have been tested on Windows Server 2019 and Windows Serve
 To download the latest version using the command line:
 
 ```shell
-Invoke-WebRequest -Uri 'https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-7.4.2.msi' -OutFile yd-agent-7.4.2.msi
+Invoke-WebRequest -Uri 'https://www.cloudbase.it/downloads/CloudbaseInitSetup_Stable_x64.msi' -OutFile CloudbaseInitSetup_Stable_x64.msi
 ```
 
 2. In the directory to which the file has been downloaded, run the installer from the command line as Administrator using the following command:
