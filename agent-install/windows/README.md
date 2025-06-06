@@ -81,7 +81,7 @@ If a Task is aborted before it has concluded it can leave orphan processes (etc.
 
 If the `abort:` clause is present its batch file will be called by the Agent on Task abort, and it is passed the process ID of the Task as its first and only argument. The abort batch file then assumes **all** responsibility for terminating the Task process itself and anything else that needs to be cleaned up.
 
-The YellowDog Agent Installer supplies a default abort handler, `yd_abort.bat`. This simple handler will kill the Task process and its entire process tree, as shown below:
+The YellowDog Agent Installer supplies a default abort handler, found in `C:\ProgramData\YellowDog\Agent\scripts\yd_abort.bat`. This simple handler will kill the Task process and its entire process tree, as shown below:
 
 ```
 @REM This script is called by the YellowDog Agent when a Task is aborted.
