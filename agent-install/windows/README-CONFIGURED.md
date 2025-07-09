@@ -19,6 +19,7 @@ The installer includes a self-contained, minimal version of Java, required for A
 To download the latest version using the command line:
 
 ```shell
+$ProgressPreference = "SilentlyContinue"
 Invoke-WebRequest -Uri 'https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-7.4.2.msi' -OutFile yd-agent-7.4.2.msi
 ```
 
