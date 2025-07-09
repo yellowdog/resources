@@ -4,43 +4,24 @@ This README provides instructions for installing and configuring the YellowDog A
 
 There are five steps:
 
-1. Install CloudBase-Init: Optional: only required if there's a need to run user-supplied (userdata) scripts at instance boot time
-2. Install the YellowDog Agent
-3. Populate the YellowDog Agent configuration file `application.yaml`
+1. Install the YellowDog Agent
+2. Populate the YellowDog Agent configuration file `application.yaml`
+3. Optional: Install CloudBase-Init (only required if there's a need to run user-supplied (userdata) scripts at instance boot time)
 4. Create a custom image (e.g., an AWS AMI) based on the Windows instance that can be used for subsequent provisioning.
 5. Register the image in a YellowDog Image Family of type `Windows`
 
 The installation steps have been tested on Windows Server 2019 and Windows Server 2022, on instances running in AWS.
 
-## (1) Download and Install CloudBase-Init (Optional)
-
-**[CloudBase-Init](https://cloudbase.it/cloudbase-init/)** runs at instance boot time and is used to execute user-supplied scripts/actions on the instance.
-
-1. Download the installer from https://www.cloudbase.it/downloads/CloudbaseInitSetup_Stable_x64.msi
-
-To download the latest version using the command line:
-
-```shell
-Invoke-WebRequest -Uri 'https://www.cloudbase.it/downloads/CloudbaseInitSetup_Stable_x64.msi' -OutFile CloudbaseInitSetup_Stable_x64.msi
-```
-
-2. In the directory to which the file has been downloaded, run the installer from the command line as Administrator using the following command:
-
-```shell
-msiexec /i CloudbaseInitSetup_Stable_x64.msi /passive /l*v cloudbase-init-install.log
-```
-
-Installation will show a progress bar but will not require user interaction.
-
-## (2) Download and Install the YellowDog Agent Service
+## (1) Download and Install the YellowDog Agent
 
 1. The current version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-7.4.2.msi.
 
 The installer includes a self-contained, minimal version of Java, required for Agent execution.
 
-To download the latest version from the command line:
+To download the latest version from the Powershell command line:
 
 ```shell
+$ProgressPreference = "SilentlyContinue"
 Invoke-WebRequest -Uri 'https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-7.4.2.msi' -OutFile yd-agent-7.4.2.msi
 ```
 
@@ -57,9 +38,15 @@ An optional `YD_AGENT_METADATA_PROVIDERS` argument can be supplied to the instal
 msiexec /i yd-agent-7.4.2.msi /passive /log yd-agent-install.log YD_AGENT_METADATA_PROVIDERS=AWS
 ```
 
-## (3) Populate the YellowDog Agent Configuration File
+## (2) Populate the YellowDog Agent Configuration File
 
-Edit the file `C:\Program Files\YellowDog\Agent\config\application.yaml` to insert the **Task Types** that will be supported. An example populated application configuration is shown below:
+Edit the file `C:\Program Files\YellowDog\Agent\config\application.yaml` to insert the **Task Types** that will be supported -- e.g.:
+
+```commandline
+notepad C:\Program Files\YellowDog\Agent\config\application.yaml
+```
+
+An example populated `application.yaml` configuration file is shown below:
 
 ```yaml
 yda.taskTypes:
@@ -69,6 +56,9 @@ yda.taskTypes:
   - name: "powershell"
     run: "powershell.exe"
     abort: "yd_abort.bat"
+
+yda.metrics.script-path: "${YD_AGENT_DATA}/scripts/metrics.bat"
+yda.data-client.rclone-binary-path: "${YD_AGENT_HOME}/bin/rclone.exe"
 
 logging.pattern.console: "%d{yyyy-MM-dd HH:mm:ss.SSS} Worker[%10.10thread] %-5level[%40logger{40}] %message [%class{0}:%method:%line]%n"
 ```
@@ -93,6 +83,26 @@ taskkill /F /T /PID %1
 ```
 
 You can add your own abort handler(s) if more sophisticated abort handling is required.
+
+## (3) Optional: Download and Install CloudBase-Init
+
+**[CloudBase-Init](https://cloudbase.it/cloudbase-init/)** runs at instance boot time and is used to execute user-supplied scripts/actions on the instance.
+
+1. Download the installer from https://www.cloudbase.it/downloads/CloudbaseInitSetup_Stable_x64.msi
+
+To download the latest version using the command line:
+
+```shell
+Invoke-WebRequest -Uri 'https://www.cloudbase.it/downloads/CloudbaseInitSetup_Stable_x64.msi' -OutFile CloudbaseInitSetup_Stable_x64.msi
+```
+
+2. In the directory to which the file has been downloaded, run the installer from the command line as Administrator using the following command:
+
+```shell
+msiexec /i CloudbaseInitSetup_Stable_x64.msi /passive /l*v cloudbase-init-install.log
+```
+
+Installation will show a progress bar but will not require user interaction.
 
 ## (4) Create a Custom Image
 

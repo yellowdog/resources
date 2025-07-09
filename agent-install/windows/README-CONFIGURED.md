@@ -8,7 +8,7 @@ There are three steps:
 2. Populate the YellowDog Agent configuration file `application.yaml`
 3. Start the YellowDog Agent service
 
-The installation steps have been tested on Windows Server 2019 and Windows Server 2022, but should also work on recent Desktop versions of Windows.
+The installation steps have been tested on Windows Server 2022.
 
 ## (1) Download and Install the YellowDog Agent
 
@@ -45,12 +45,16 @@ Example contents obtained this way are shown below, but with the `taskTypes` mod
 yda:
   # The task types that can be run by the agent. These are default values and should be replaced with task types corresponding to the work to be performed on the node.
   taskTypes:
-    - name: "cmd"
-      run: "cmd.exe"
-      abort: "yd_abort.bat"
-    - name: "powershell"
-      run: "powershell.exe"
-      abort: "yd_abort.bat"
+      - name: "cmd"
+        run: "cmd.exe"
+        abort: "yd_abort.bat"
+      - name: "powershell"
+        run: "powershell.exe"
+        abort: "yd_abort.bat"
+
+  # Paths to the default metrics script and rclone binary
+  metrics.script-path: "${YD_AGENT_DATA}/scripts/metrics.bat"
+  data-client.rclone-binary-path: "${YD_AGENT_HOME}/bin/rclone.exe"
   
   # The instance provider. This is a default value and can be changed. Value must be one of the following: ALIBABA, AWS, GOOGLE, AZURE, OCI, ON_PREMISE
   provider: "ON_PREMISE"
