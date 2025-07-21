@@ -93,6 +93,7 @@ You can add your own abort handler(s) if more sophisticated abort handling is re
 To download the latest version using the command line:
 
 ```shell
+$ProgressPreference = "SilentlyContinue"
 Invoke-WebRequest -Uri 'https://www.cloudbase.it/downloads/CloudbaseInitSetup_Stable_x64.msi' -OutFile CloudbaseInitSetup_Stable_x64.msi
 ```
 
