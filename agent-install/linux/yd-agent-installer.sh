@@ -73,10 +73,13 @@ esac
 ################################################################################
 
 PACKAGE_FILE="/tmp/yd-agent.$PACKAGE"
+# Temporary: Force consideration of Agent version 10.x to 19.x only
+NAME_PATTERN="*yd-agent_1*"
 
 yd_log "Starting Agent package download ($PACKAGE_FILE)"
 curl --fail -Ls "$YD_AGENT_REPO_URL?repository=$YD_AGENT_REPO_NAME\
-&group=/agent/$PACKAGE/$ARCH&sort=name&direction=desc" -o "$PACKAGE_FILE"
+&group=/agent/$PACKAGE/$ARCH&name=$NAME_PATTERN&sort=name&direction=desc" \
+-o "$PACKAGE_FILE"
 
 yd_log "Installing Agent package"
 if [[ $PACKAGE == "deb" ]]; then
