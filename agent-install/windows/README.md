@@ -18,7 +18,7 @@ The installation steps have been tested on Windows Server 2019 and Windows Serve
 
 The installer includes a self-contained, minimal version of Java, required for Agent execution.
 
-To download the latest version from the Powershell command line:
+To download the latest version from the PowerShell command line:
 
 ```shell
 $ProgressPreference = "SilentlyContinue"
