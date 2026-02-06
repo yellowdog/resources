@@ -14,7 +14,7 @@ The installation steps have been tested on Windows Server 2019 and Windows Serve
 
 ## (1) Download and Install the YellowDog Agent
 
-1. The current version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-12.0.2.msi.
+1. The current version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-14.0.2.msi.
 
 The installer includes a self-contained, minimal version of Java, required for Agent execution.
 
@@ -22,20 +22,20 @@ To download the latest version from the PowerShell command line:
 
 ```shell
 $ProgressPreference = "SilentlyContinue"
-Invoke-WebRequest -Uri 'https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-12.0.2.msi' -OutFile yd-agent-12.0.2.msi
+Invoke-WebRequest -Uri 'https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-14.0.2.msi' -OutFile yd-agent-14.0.2.msi
 ```
 
 2. In the directory to which the file has been downloaded, run the installer from the command line as Administrator:
 
 ```shell
-msiexec /i yd-agent-12.0.2.msi /passive /log yd-agent-install.log
+msiexec /i yd-agent-14.0.2.msi /passive /log yd-agent-install.log
 ```
 Installation will show a progress bar but will not require user interaction.
 
 An optional `YD_AGENT_METADATA_PROVIDERS` argument can be supplied to the installer to optimise Agent startup. Set it with the appropriate provider name(s) for your image from these options: `AWS`, `AWS_V2`, `GOOGLE`, `AZURE`, `OCI` or `ALIBABA`, e.g.:
 
 ```shell
-msiexec /i yd-agent-12.0.2.msi /passive /log yd-agent-install.log YD_AGENT_METADATA_PROVIDERS=AWS
+msiexec /i yd-agent-14.0.2.msi /passive /log yd-agent-install.log YD_AGENT_METADATA_PROVIDERS=AWS
 ```
 
 ## (2) Populate the YellowDog Agent Configuration File
