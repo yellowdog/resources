@@ -86,7 +86,7 @@ if [[ $PACKAGE == "deb" ]]; then
   export DEBIAN_FRONTEND=noninteractive
   apt-get install -y -o DPkg::Lock::Timeout=-1 "$PACKAGE_FILE" &> /dev/null
 elif [[ $PACKAGE == "rpm" ]]; then
-  rpm -i "$PACKAGE_FILE" &> /dev/null
+  rpm -U --test "$PACKAGE_FILE" && rpm -U "$PACKAGE_FILE" &> /dev/null
 fi
 
 yd_log "Agent package installation complete ... removing package"
