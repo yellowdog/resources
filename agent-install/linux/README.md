@@ -2,7 +2,7 @@
 
 ## Overview 
 
-The [yd-agent-installer.sh](yd-agent-installer.sh) script can be used to install and configure the YellowDog Agent and its dependencies on Linux.
+The [yd-agent-installer.sh](yd-agent-installer.sh) script can be used to install and configure the YellowDog Agent and its dependencies, on Linux.
 
 The script is designed to work with recent Linux distributions based on **Debian**, **Red Hat**, and **SUSE**. The following specific distributions have been tested, using AWS instances:
 
@@ -16,6 +16,7 @@ The script is designed to work with recent Linux distributions based on **Debian
 - SUSE SLES 15 SP4
 - Ubuntu 20.04
 - Ubuntu 22.04
+- Ubuntu 24.04
 
 ## Installation Process
 
