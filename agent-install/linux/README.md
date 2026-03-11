@@ -131,6 +131,22 @@ User data scripts can be concatenated using the `userDataFiles` property, for ex
 userDataFiles = ["set-variables.sh", "yd-agent-installer.sh", "add-sudo.sh"]
 ```
 
+The following simple wrapper script is sometimes useful as an alternative to the full installer script (which is downloaded then run). The script is more compact, hence uses less of the user data payload budget.
+
+```shell
+#!/bin/bash
+
+cd /root || exit
+echo "Downloading the Agent installer script"
+wget https://raw.githubusercontent.com/yellowdog/resources/refs/heads/main/agent-install/linux/yd-agent-installer.sh
+
+# Install/update the Agent
+bash yd-agent-installer.sh
+
+echo "Restarting the Agent Service"
+systemctl --no-block restart yd-agent.service
+```
+
 When using dynamic Agent installation, bear in mind that **every** provisioned instance will incur the costs of downloading the YellowDog installation package (about 60MB). We therefore recommend against using this approach when provisioning instances at scale: use a custom image instead, with the Agent pre-installed.
 
 ### Configured Worker Pool Installation
