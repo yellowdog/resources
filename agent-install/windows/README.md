@@ -65,6 +65,14 @@ logging.pattern.console: "%d{yyyy-MM-dd HH:mm:ss.SSS} Worker[%10.10thread] %-5le
 
 Note that this will set up flexible but liberal Task Types that can execute arbitrary commands on the instance. For production use, specific custom Task Type scripts are recommended.
 
+The `application.yaml` file supplied by the installer already contains the `yda.metrics.script-path` and `yda.data-client.rclone-binary-path` settings shown above, together with an empty `yda.taskTypes:` entry. Retain the metrics and rclone settings: without them the Agent will not collect metrics or perform rclone-based data movement.
+
+The Agent service was started by the installation in step (1), using `application.yaml` as supplied, so restart the service to pick up the edited configuration:
+
+```powershell
+Restart-Service -Name yd-agent
+```
+
 ### Abort Handlers
 
 If a Task is aborted before it has concluded it can leave orphan processes (etc.) running and taking up resources. To prevent this, the Task Types include an *optional* `abort:` clause, pointing to a Windows batch script that can implement appropriate clean-up steps on abort.
@@ -107,7 +115,19 @@ Installation will show a progress bar but will not require user interaction.
 
 ## (4) Create a Custom Image
 
-The instance is now ready for creation of a custom image for use with YellowDog. Make a note of the ID of the custom image that is created, for use below.
+The instance is now ready for creation of a custom image for use with YellowDog.
+
+First stop the Agent service, so that the image isn't captured while the Agent is running:
+
+```powershell
+Stop-Service -Name yd-agent
+```
+
+The service's startup type is left unchanged, so the Agent will start automatically when an instance provisioned from the image boots, taking its identity from the instance metadata at that point.
+
+Then follow your cloud provider's own procedure for generalising and capturing a Windows image -- e.g., the Sysprep support provided by EC2Launch v2 on AWS. If CloudBase-Init was installed in step (3), please also see its [Sysprepping](https://cloudbase-init.readthedocs.io/en/latest/tutorial.html#sysprepping) documentation; note that the installer's optional Sysprep step is not performed by the unattended `msiexec` command shown above.
+
+Make a note of the ID of the custom image that is created, for use below.
 
 ## (5) Register the Image within a YellowDog Windows Image Family
 
