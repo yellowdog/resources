@@ -214,7 +214,7 @@ yd_log "Agent configuration file created"
 
 yd_log "(Re-)starting Agent service (yd-agent)"
 yd_run systemctl restart --no-block yd-agent.service
-yd_log "Agent service started"
+yd_log "Agent service restart requested"
 
 ################################################################################
 
