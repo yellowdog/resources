@@ -56,6 +56,13 @@ case "$YD_CONFIGURED_WP" in
     ;;
 esac
 
+# Validate up front: failing later would leave the package upgraded, the
+# existing configuration replaced and the service not restarted
+if [[ $YD_CONFIGURED_WP == "TRUE" && -z "${YD_TOKEN:-}" ]]; then
+  yd_log "Error: YD_TOKEN must be set for a Configured Worker Pool install"
+  exit 1
+fi
+
 ################################################################################
 
 yd_log "Checking distro using 'ID' from '/etc/os-release'"
@@ -153,13 +160,6 @@ rm -rf "$PACKAGE_DIR"
 ################################################################################
 
 YD_AGENT_CONFIG="$YD_AGENT_HOME/application.yaml"
-
-# Validate before touching the existing configuration, so that a failure here
-# leaves any working configuration in place
-if [[ $YD_CONFIGURED_WP == "TRUE" && -z "${YD_TOKEN:-}" ]]; then
-  yd_log "Error: YD_TOKEN must be set for a Configured Worker Pool install"
-  exit 1
-fi
 
 if [[ -f "$YD_AGENT_CONFIG" ]]
 then
