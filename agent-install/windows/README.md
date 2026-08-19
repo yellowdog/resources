@@ -42,8 +42,8 @@ msiexec /i yd-agent-17.4.0.msi /passive /log yd-agent-install.log YD_AGENT_METAD
 
 Edit the file `C:\Program Files\YellowDog\Agent\config\application.yaml` to insert the **Task Types** that will be supported -- e.g.:
 
-```commandline
-notepad C:\Program Files\YellowDog\Agent\config\application.yaml
+```powershell
+notepad "C:\Program Files\YellowDog\Agent\config\application.yaml"
 ```
 
 An example populated `application.yaml` configuration file is shown below:
