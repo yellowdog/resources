@@ -43,9 +43,7 @@ Overwrite the contents of the file `C:\Program Files\YellowDog\Agent\config\appl
 - Create (or select) the desired **Configured Worker Pool**
 - Copy the text supplied using the **Agent Configuration: View** button
 
-Example contents obtained this way are shown below, but with the `taskTypes` modified and the
-Worker Pool token replaced by a placeholder. The token is a secret that allows the Agent to
-register with the platform, so treat the contents of `application.yaml` accordingly.
+Example contents obtained this way are shown below, but with the `taskTypes` modified and the Worker Pool token replaced by a placeholder. The token is a secret that allows the Agent to register with the platform, so please treat the contents of `application.yaml` accordingly.
 
 ```yaml
 yda:
@@ -90,11 +88,11 @@ logging.pattern.console: "%d{yyyy-MM-dd HH:mm:ss.SSS} Worker[%10.10thread] %-5le
 
 Adjust the contents of the `application.yaml` file as required -- e.g., to add your own Task Types. For full details of the available options please see the [YellowDog Documentation](https://docs.yellowdog.co/#/the-platform/using-variables-in-the-configuration-file).
 
-Two adjustments are recommended for any long-lived on-premise machine, and are described below.
+Two adjustments to the values supplied by the Portal are recommended for any long-lived on-premise machine, as described in the next two sections.
 
 ### Node Identity
 
-The default `instanceId` of `${random.uuid}` changes each time the Agent is started, so the machine is registered as a new node on every restart. Set `instanceId` to a value that is durable and unique within the Worker Pool -- the machine's hostname is usually the most convenient choice -- and set the `hostname` property to match:
+The default `instanceId` of `${random.uuid}` changes each time the Agent is started, so the machine is registered as a new node on every restart. Set `instanceId` to a value that is durable and unique within the Worker Pool -- the machine's hostname is usually the most convenient choice -- and set the `hostname` property to match, within the existing `yda:` block:
 
 ```yaml
 yda:
@@ -106,7 +104,7 @@ This is what the [Linux installer script](../linux/README.md) in this repository
 
 ### Node Resources
 
-For a Configured Worker Pool node there is no cloud provider to describe the machine, so nothing will supply its resource details unless the Agent's configuration does. Add the number of vCPUs and the amount of RAM (in GB) within the `yda:` block:
+For a Configured Worker Pool node there is no cloud provider to describe the machine, so nothing will supply its resource details unless the Agent's configuration does. Add the number of vCPUs and the amount of RAM (in GB) within the existing `yda:` block:
 
 ```yaml
 yda:
@@ -153,7 +151,7 @@ Start-Service -Name yd-agent
 
 The first command is required because the installation in step (1) used `SERVICE_STARTUP=Manual`, which permanently sets the service's startup type to `Manual`: without setting it back to `Automatic`, the Agent will not be restarted when the machine reboots.
 
-The equivalent commands for `cmd.exe` are shown below. Note that `sc.exe` must be spelled out in full when using PowerShell, in which `sc` is an alias for `Set-Content`.
+The equivalent commands for `cmd.exe` are shown below; note that `sc.exe` must be spelled out in full if these are used from PowerShell, in which `sc` is an alias for `Set-Content`.
 
 ```bat
 sc.exe config yd-agent start= auto
