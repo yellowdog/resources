@@ -100,12 +100,44 @@ esac
 PACKAGE_DIR="$(mktemp -d)"
 trap 'rm -rf "$PACKAGE_DIR"' EXIT
 PACKAGE_FILE="$PACKAGE_DIR/yd-agent.$PACKAGE"
-# Temporary: Force consideration of Agent version 10.x to 19.x only
-NAME_PATTERN="*yd-agent_1*"
+NAME_PATTERN="*yd-agent_*"
 
-yd_log "Starting Agent package download ($PACKAGE_FILE)"
+# Nexus sorts raw assets lexicographically, which ranks (e.g.) 17.2.9 above
+# 17.2.16 and 17.4.1 above 17.10.0, so resolve the highest version here rather
+# than relying on the repository to return it first
+yd_latest_version () {
+  local search_url="${YD_AGENT_REPO_URL%/download}"
+  local query="repository=$YD_AGENT_REPO_NAME&group=/agent/$PACKAGE/$ARCH"
+  query="$query&name=$NAME_PATTERN"
+  local token="" page versions=""
+  while true; do
+    page=$(curl --fail -Ls \
+           "$search_url?$query${token:+&continuationToken=$token}")
+    versions="$versions$(printf '%s' "$page" \
+      | safe_grep -o "yd-agent_[0-9][0-9.]*_$ARCH\.$PACKAGE" \
+      | sed -e "s/^yd-agent_//" -e "s/_$ARCH\.$PACKAGE\$//")
+"
+    token=$(printf '%s' "$page" \
+      | sed -n 's/.*"continuationToken"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+    if [[ -z "$token" ]]; then
+      break
+    fi
+  done
+  printf '%s' "$versions" | safe_grep -v '^$' | sort -Vu | tail -n 1
+}
+
+yd_log "Resolving the latest Agent version"
+AGENT_VERSION="$(yd_latest_version)"
+if [[ -z "$AGENT_VERSION" ]]; then
+  yd_log "Could not determine the latest Agent version ... aborting"
+  exit 1
+fi
+yd_log "Using Agent version = $AGENT_VERSION"
+
+PACKAGE_NAME="yd-agent_${AGENT_VERSION}_$ARCH.$PACKAGE"
+yd_log "Starting Agent package download ($PACKAGE_NAME)"
 curl --fail -Ls "$YD_AGENT_REPO_URL?repository=$YD_AGENT_REPO_NAME\
-&group=/agent/$PACKAGE/$ARCH&name=$NAME_PATTERN&sort=name&direction=desc" \
+&group=/agent/$PACKAGE/$ARCH&name=*$PACKAGE_NAME" \
 -o "$PACKAGE_FILE"
 
 yd_log "Installing Agent package"
