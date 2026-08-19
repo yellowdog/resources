@@ -22,6 +22,20 @@ yd_log () {
   echo -e "*** YD" "$(date -u "+%Y-%m-%d_%H%M%S_UTC"):" "$@"
 }
 
+YD_INSTALL_LOG="/var/log/yd-agent-install.log"
+
+# Run a command quietly, but surface its output if it fails: this script
+# usually runs as instance user data, where the captured console log is the
+# only record of what went wrong
+yd_run () {
+  if ! "$@" >> "$YD_INSTALL_LOG" 2>&1; then
+    yd_log "Command failed: $*"
+    yd_log "Last 20 lines of $YD_INSTALL_LOG:"
+    tail -n 20 "$YD_INSTALL_LOG" >&2
+    return 1
+  fi
+}
+
 yd_log "Starting YellowDog Agent Setup"
 
 if [[ "$EUID" -ne 0 ]]; then
@@ -93,9 +107,9 @@ curl --fail -Ls "$YD_AGENT_REPO_URL?repository=$YD_AGENT_REPO_NAME\
 yd_log "Installing Agent package"
 if [[ $PACKAGE == "deb" ]]; then
   export DEBIAN_FRONTEND=noninteractive
-  apt-get install -y -o DPkg::Lock::Timeout=-1 "$PACKAGE_FILE" &> /dev/null
+  yd_run apt-get install -y -o DPkg::Lock::Timeout=-1 "$PACKAGE_FILE"
 elif [[ $PACKAGE == "rpm" ]]; then
-  rpm -U "$PACKAGE_FILE" &> /dev/null
+  yd_run rpm -U "$PACKAGE_FILE"
 fi
 
 yd_log "Agent package installation complete ... removing package"
@@ -163,7 +177,7 @@ yd_log "Agent configuration file created"
 ################################################################################
 
 yd_log "(Re-)starting Agent service (yd-agent)"
-systemctl restart --no-block yd-agent.service &> /dev/null
+yd_run systemctl restart --no-block yd-agent.service
 yd_log "Agent service started"
 
 ################################################################################
