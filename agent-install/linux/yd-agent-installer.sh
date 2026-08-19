@@ -39,7 +39,7 @@ DISTRO=$(safe_grep "^ID=" /etc/os-release | sed -e 's/ID=//' \
 if [[ "$DISTRO" == "" ]]; then
   yd_log "Checking distro using 'ID_LIKE' from '/etc/os-release'"
   DISTRO=$(safe_grep "^ID_LIKE=" /etc/os-release | sed -e 's/ID_LIKE=//' \
-           | sed -e 's/"//g')
+           | sed -e 's/"//g' | awk '{print $1}')
 fi
 yd_log "Using distro = $DISTRO"
 
