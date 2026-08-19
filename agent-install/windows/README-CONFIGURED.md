@@ -30,7 +30,9 @@ msiexec /i yd-agent-17.4.0.msi /passive /log yd-agent-install.log SERVICE_STARTU
 ```
 Installation will show a progress bar but will not require user interaction.
 
-The `YD_AGENT_METADATA_PROVIDERS` parameter should be set to `NONE` for configured installations. 
+The `YD_AGENT_METADATA_PROVIDERS` parameter should be set to `NONE` for configured installations.
+
+The `SERVICE_STARTUP=Manual` parameter stops the Agent service from starting up before its configuration has been populated in step (2). This parameter sets the service's startup type permanently, which is why step (3) below sets it back to `Automatic`.
 
 ## (2) Populate the YellowDog Agent Configuration File
 
@@ -106,11 +108,22 @@ You can add your own abort handler(s) if more sophisticated abort handling is re
 
 ## (3) Start the YellowDog Agent Service
 
-Now that the Agent's configuration is populated, manually start the service by running the following command as Administrator:
+Now that the Agent's configuration is populated, run the following commands as Administrator:
 
-```shell
-sc start yd-agent
+```powershell
+Set-Service -Name yd-agent -StartupType Automatic
+Start-Service -Name yd-agent
 ```
-Note that this only needs to be done once. Subsequently, the service will start automatically on every reboot.
+
+The first command is required because the installation in step (1) used `SERVICE_STARTUP=Manual`, which permanently sets the service's startup type to `Manual`: without setting it back to `Automatic`, the Agent will not be restarted when the machine reboots.
+
+The equivalent commands for `cmd.exe` are shown below. Note that `sc.exe` must be spelled out in full when using PowerShell, in which `sc` is an alias for `Set-Content`.
+
+```bat
+sc.exe config yd-agent start= auto
+sc.exe start yd-agent
+```
+
+Both commands only need to be run once. Subsequently, the service will start automatically on every reboot.
 
 The Windows system should now appear in the Configured Worker Pool within the YellowDog Portal, and be available as a target for YellowDog Task Scheduling.
