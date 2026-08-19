@@ -179,6 +179,5 @@ The following set of variables is available for specifying the properties of an 
 | `YD_WORKER_TARGET_COUNT`      | The number of workers to create per Node or per vCPU (as determined by `YD_WORKER_TARGET_TYPE`). By default, `1`.                                                         |
 | `YD_WORKER_TARGET_TYPE`       | Must be set to `"PER_NODE"` or `"PER_VCPU"`. By default, `"PER_NODE"`.                                                                                                    |
 | `YD_URL`                      | The URL of the YellowDog Platform's REST API. By default, `https://portal.yellowdog.co/api`.                                                                              |
-| `YD_AGENT_METADATA_PROVIDERS` | Set this to `NONE` for configured nodes or optionally specify one of `AWS`, `GOOGLE`, `AZURE`, or `OCI` to optimise Agent startup. Empty by default.                      |
 
 The installer script is idempotent. This is useful if one wants to update the version of the Agent, etc. Note, however, that all files (including `application.yaml`) will be overwritten.
