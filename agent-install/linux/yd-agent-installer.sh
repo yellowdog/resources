@@ -151,7 +151,10 @@ if [[ $PACKAGE == "deb" ]]; then
   export DEBIAN_FRONTEND=noninteractive
   yd_run apt-get install -y -o DPkg::Lock::Timeout=-1 "$PACKAGE_FILE"
 elif [[ $PACKAGE == "rpm" ]]; then
-  yd_run rpm -U "$PACKAGE_FILE"
+  # --replacepkgs: 'rpm -U' alone refuses a package that is already installed
+  # at the same version, which is the commonest re-run of all now that the
+  # script resolves the latest version itself
+  yd_run rpm -U --replacepkgs "$PACKAGE_FILE"
 fi
 
 yd_log "Agent package installation complete ... removing package"
