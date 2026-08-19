@@ -141,15 +141,15 @@ The following simple wrapper script is sometimes useful as an alternative to the
 ```shell
 #!/bin/bash
 
-cd /root || exit
+set -eu
+
+cd /root
 echo "Downloading the Agent installer script"
-wget https://raw.githubusercontent.com/yellowdog/resources/refs/heads/main/agent-install/linux/yd-agent-installer.sh
+curl -fLsS -o yd-agent-installer.sh \
+  https://raw.githubusercontent.com/yellowdog/resources/refs/heads/main/agent-install/linux/yd-agent-installer.sh
 
-# Install/update the Agent
+# Install/update the Agent; this also (re-)starts the Agent service
 bash yd-agent-installer.sh
-
-echo "Restarting the Agent Service"
-systemctl --no-block restart yd-agent.service
 ```
 
 When using dynamic Agent installation, bear in mind that **every** provisioned instance will incur the costs of downloading the YellowDog installation package (about 60MB). We therefore recommend against using this approach when provisioning instances at scale: use a custom image instead, with the Agent pre-installed.
