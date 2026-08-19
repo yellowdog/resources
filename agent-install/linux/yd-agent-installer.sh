@@ -93,6 +93,13 @@ rm "$PACKAGE_FILE"
 
 YD_AGENT_CONFIG="$YD_AGENT_HOME/application.yaml"
 
+# Validate before touching the existing configuration, so that a failure here
+# leaves any working configuration in place
+if [[ $YD_CONFIGURED_WP == "TRUE" && -z "${YD_TOKEN:-}" ]]; then
+  yd_log "Error: YD_TOKEN must be set for a Configured Worker Pool installation"
+  exit 1
+fi
+
 if [[ -f "$YD_AGENT_CONFIG" ]]
 then
   YD_CONFIG_BACKUP="$YD_AGENT_CONFIG.backup.$(date -u "+%Y-%m-%d_%H%M%S_UTC")"
@@ -112,10 +119,6 @@ EOM
 
 if [[ $YD_CONFIGURED_WP == "TRUE" ]]; then
   yd_log "Adding Configured Worker Pool properties"
-  if [[ -z $YD_TOKEN ]]; then
-    yd_log "Error: YD_TOKEN must be set"
-    exit 1
-  fi
   YD_INSTANCE_ID="${YD_INSTANCE_ID:-$(hostname)}"
   if [[ $YD_INSTANCE_ID == "" ]]; then
     YD_INSTANCE_ID="ID-$RANDOM-$RANDOM-$RANDOM"
