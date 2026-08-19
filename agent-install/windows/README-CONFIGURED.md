@@ -42,7 +42,9 @@ Overwrite the contents of the file `C:\Program Files\YellowDog\Agent\config\appl
 - Create (or select) the desired **Configured Worker Pool**
 - Copy the text supplied using the **Agent Configuration: View** button
 
-Example contents obtained this way are shown below, but with the `taskTypes` modified.
+Example contents obtained this way are shown below, but with the `taskTypes` modified and the
+Worker Pool token replaced by a placeholder. The token is a secret that allows the Agent to
+register with the platform, so treat the contents of `application.yaml` accordingly.
 
 ```yaml
 yda:
@@ -76,7 +78,7 @@ yda:
     targetCount: 1
 
   # The worker pool token. This value should remain the same.
-  token: "da855e3c-dd0b-478e-b873-47735f831c1b"
+  token: "<the Worker Pool token supplied by the Portal>"
 
   # The target URL. This value should remain the same.
   services-schema.default-url: "https://portal.yellowdog.co/api/"
