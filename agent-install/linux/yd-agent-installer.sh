@@ -138,10 +138,6 @@ yda:
   createWorkers:
     targetType: "${YD_WORKER_TARGET_TYPE:-PER_NODE}"
     targetCount: "${YD_WORKER_TARGET_COUNT:-1}"
-  schedule:
-    enabled: "${YD_SCHEDULE_ENABLED:-false}"
-    startup: ${YD_SCHEDULE_STARTUP:-['0 0 18 * * MON-FRI']}
-    shutdown: ${YD_SCHEDULE_SHUTDOWN:-['0 0 7 * * MON-FRI']}
 logging.pattern.console: "%d{yyyy-MM-dd HH:mm:ss.SSS} Worker[%10.10thread]\
  %-5level[%40logger{40}] %message [%class{0}:%method:%line]%n"
 EOM
