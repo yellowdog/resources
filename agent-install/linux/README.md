@@ -8,6 +8,7 @@ The script is designed to work with recent Linux distributions based on **Debian
 
 - AlmaLinux 9.1
 - Amazon Linux 2
+- Amazon Linux 2023
 - CentOS Stream 9
 - Debian 11
 - Debian 12
