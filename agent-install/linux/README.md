@@ -32,6 +32,8 @@ The installation process performs the following actions:
 2. Creates the Agent's configuration file (`application.yaml`) and its startup script, in the Agent's home directory.
 3. Configures the Agent as a `systemd` service and starts the `yd-agent` service.
 
+Output from the package installation and the service restart is recorded in `/var/log/yd-agent-install.log`. The script's own progress messages go to its standard output, prefixed with `*** YD`; if the script is supplied as instance user data these are captured in the instance's cloud-init output log.
+
 ## YellowDog Task Types
 
 By default, a single general-purpose YellowDog **Task Type**, `bash`, is defined, which runs Bash commands and scripts:
