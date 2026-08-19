@@ -13,11 +13,11 @@ The installation steps have been tested on Windows Server 2022.
 
 ## (1) Download and Install the YellowDog Agent
 
-1. The latest version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-17.4.0.msi.
+1. The current version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-17.4.0.msi. All available versions can be browsed at https://nexus.yellowdog.tech/service/rest/repository/browse/raw-public/agent/msi/.
 
 The installer includes a self-contained, minimal version of Java, required for Agent execution.
 
-To download the latest version using the command line:
+To download this version using the command line:
 
 ```shell
 $ProgressPreference = "SilentlyContinue"
