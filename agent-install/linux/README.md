@@ -37,10 +37,9 @@ The installation process performs the following actions:
 By default, a single general-purpose YellowDog **Task Type**, `bash`, is defined, which runs Bash commands and scripts:
 
 ```yaml
-yda:
-  taskTypes:
-    - name: "bash"
-      run: "/bin/bash"
+yda.taskTypes:
+  - name: "bash"
+    run: "/bin/bash"
 ```
 
 Edit the following section of the installer script to customise Task Type(s) for your own requirements.
@@ -48,13 +47,18 @@ Edit the following section of the installer script to customise Task Type(s) for
 For example, to add a task type to run a specific executable you might edit the section of the script as follows:
 
 ```shell
-cat >> $YD_AGENT_HOME/application.yaml << EOM
+cat > $YD_AGENT_CONFIG << EOM
+yda.taskTypes:
   - name: "bash"
     run: "/bin/bash"
   - name: "my-task-type"
     run: "/usr/bin/my-executable"
+yda.metrics.script-path: "/opt/yellowdog/agent/bin/metrics.sh"
+yda.data-client.rclone-binary-path: "/opt/yellowdog/agent/bin/rclone"
 EOM
 ```
+
+Retain the `yda.metrics.script-path` and `yda.data-client.rclone-binary-path` settings: without them the Agent will not collect metrics or perform rclone-based data movement.
 
 ## Add passwordless sudo access for yd-agent
 
