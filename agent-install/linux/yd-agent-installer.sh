@@ -95,7 +95,11 @@ esac
 
 ################################################################################
 
-PACKAGE_FILE="/tmp/yd-agent.$PACKAGE"
+# Download into a private directory: a predictable path in a world-writable
+# /tmp lets a local user redirect what root is about to install
+PACKAGE_DIR="$(mktemp -d)"
+trap 'rm -rf "$PACKAGE_DIR"' EXIT
+PACKAGE_FILE="$PACKAGE_DIR/yd-agent.$PACKAGE"
 # Temporary: Force consideration of Agent version 10.x to 19.x only
 NAME_PATTERN="*yd-agent_1*"
 
@@ -113,7 +117,7 @@ elif [[ $PACKAGE == "rpm" ]]; then
 fi
 
 yd_log "Agent package installation complete ... removing package"
-rm "$PACKAGE_FILE"
+rm -rf "$PACKAGE_DIR"
 
 ################################################################################
 
