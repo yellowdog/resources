@@ -28,7 +28,7 @@ The installation package contains the YellowDog Agent JAR file and a self-contai
 
 The installation process performs the following actions:
 
-1. Creates a new user and group `yd-agent` with home directory `/opt/yellowdog/agent`, and a data directory at `/var/opt/yellowdog/agent`. The installer unpacks the `agent.jar` file and the JRE into the Agent's home directory.
+1. Creates a new user and group `yd-agent` with home directory `/opt/yellowdog/agent`, and a data directory at `/var/opt/yellowdog/agent/data`. The installer unpacks the `agent.jar` file and the JRE into the Agent's home directory.
 2. Creates the Agent's configuration file (`application.yaml`) and its startup script, in the Agent's home directory.
 3. Configures the Agent as a `systemd` service and starts the `yd-agent` service.
 
