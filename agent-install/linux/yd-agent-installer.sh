@@ -3,8 +3,7 @@
 # YellowDog Agent installer script.
 
 # Set package repository details
-YD_AGENT_REPO_URL=\
-"${YD_AGENT_REPO_URL:-\
+YD_AGENT_REPO_URL="${YD_AGENT_REPO_URL:-\
 https://nexus.yellowdog.tech/service/rest/v1/search/assets/download}"
 YD_AGENT_REPO_NAME="${YD_AGENT_REPO_NAME:-raw-public}"
 
@@ -117,8 +116,8 @@ yd_latest_version () {
       | safe_grep -o "yd-agent_[0-9][0-9.]*_$ARCH\.$PACKAGE" \
       | sed -e "s/^yd-agent_//" -e "s/_$ARCH\.$PACKAGE\$//")
 "
-    token=$(printf '%s' "$page" \
-      | sed -n 's/.*"continuationToken"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+    token=$(printf '%s' "$page" | sed -n \
+      's/.*"continuationToken"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
     if [[ -z "$token" ]]; then
       break
     fi
@@ -158,7 +157,7 @@ YD_AGENT_CONFIG="$YD_AGENT_HOME/application.yaml"
 # Validate before touching the existing configuration, so that a failure here
 # leaves any working configuration in place
 if [[ $YD_CONFIGURED_WP == "TRUE" && -z "${YD_TOKEN:-}" ]]; then
-  yd_log "Error: YD_TOKEN must be set for a Configured Worker Pool installation"
+  yd_log "Error: YD_TOKEN must be set for a Configured Worker Pool install"
   exit 1
 fi
 
