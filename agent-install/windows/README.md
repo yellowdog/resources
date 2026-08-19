@@ -20,22 +20,22 @@ The installer includes a self-contained, minimal version of Java, required for A
 
 To download this version from the PowerShell command line:
 
-```shell
+```powershell
 $ProgressPreference = "SilentlyContinue"
 Invoke-WebRequest -Uri 'https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-17.4.0.msi' -OutFile yd-agent-17.4.0.msi
 ```
 
 2. In the directory to which the file has been downloaded, run the installer from the command line as Administrator:
 
-```shell
-msiexec /i yd-agent-17.4.0.msi /passive /log yd-agent-install.log
+```bat
+msiexec /i yd-agent-17.4.0.msi /passive /l*v yd-agent-install.log
 ```
 Installation will show a progress bar but will not require user interaction.
 
 An optional `YD_AGENT_METADATA_PROVIDERS` argument can be supplied to the installer to optimise Agent startup. Set it with the appropriate provider name(s) for your image from these options: `AWS`, `AWS_V2`, `GOOGLE`, `AZURE`, `OCI` or `ALIBABA`, e.g.:
 
-```shell
-msiexec /i yd-agent-17.4.0.msi /passive /log yd-agent-install.log YD_AGENT_METADATA_PROVIDERS=AWS
+```bat
+msiexec /i yd-agent-17.4.0.msi /passive /l*v yd-agent-install.log YD_AGENT_METADATA_PROVIDERS=AWS
 ```
 
 A value of `NONE` is also accepted, for systems that are not cloud-provisioned -- see the [Configured Worker Pool guide](README-CONFIGURED.md).
@@ -95,7 +95,7 @@ If the `abort:` clause is present its batch file will be called by the Agent on 
 
 The YellowDog Agent Installer supplies a default abort handler, found in `C:\ProgramData\YellowDog\Agent\scripts\yd_abort.bat`. This simple handler will kill the Task process and its entire process tree, as shown below:
 
-```
+```bat
 @REM This script is called by the YellowDog Agent when a Task is aborted.
 @REM The Process ID of the Task is supplied as the first (and only) parameter.
 @REM The script takes over all responsibility for aborting the Task and any
@@ -114,14 +114,14 @@ You can add your own abort handler(s) if more sophisticated abort handling is re
 
 To download the latest version using the command line:
 
-```shell
+```powershell
 $ProgressPreference = "SilentlyContinue"
 Invoke-WebRequest -Uri 'https://www.cloudbase.it/downloads/CloudbaseInitSetup_Stable_x64.msi' -OutFile CloudbaseInitSetup_Stable_x64.msi
 ```
 
 2. In the directory to which the file has been downloaded, run the installer from the command line as Administrator using the following command:
 
-```shell
+```bat
 msiexec /i CloudbaseInitSetup_Stable_x64.msi /passive /l*v cloudbase-init-install.log
 ```
 

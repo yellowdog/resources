@@ -19,15 +19,15 @@ The installer includes a self-contained, minimal version of Java, required for A
 
 To download this version using the command line:
 
-```shell
+```powershell
 $ProgressPreference = "SilentlyContinue"
 Invoke-WebRequest -Uri 'https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-17.4.0.msi' -OutFile yd-agent-17.4.0.msi
 ```
 
 2. In the directory to which the file has been downloaded, run the installer from the command line as Administrator:
 
-```shell
-msiexec /i yd-agent-17.4.0.msi /passive /log yd-agent-install.log SERVICE_STARTUP=Manual YD_AGENT_METADATA_PROVIDERS=NONE
+```bat
+msiexec /i yd-agent-17.4.0.msi /passive /l*v yd-agent-install.log SERVICE_STARTUP=Manual YD_AGENT_METADATA_PROVIDERS=NONE
 ```
 Installation will show a progress bar but will not require user interaction.
 
@@ -61,7 +61,7 @@ yda:
   # Paths to the default metrics script and rclone binary
   metrics.script-path: "${YD_AGENT_DATA}/scripts/metrics.bat"
   data-client.rclone-binary-path: "${YD_AGENT_HOME}/bin/rclone.exe"
-  
+
   # The instance provider. This is a default value and can be changed. Value must be one of the following: ALIBABA, AWS, GOOGLE, AZURE, OCI, ON_PREMISE
   provider: "ON_PREMISE"
 
@@ -131,7 +131,7 @@ If the `abort:` clause is present its batch file will be called by the Agent on 
 
 The YellowDog Agent Installer supplies a default abort handler, found in `C:\ProgramData\YellowDog\Agent\scripts\yd_abort.bat`. This simple handler will kill the Task process and its entire process tree, as shown below:
 
-```
+```bat
 @REM This script is called by the YellowDog Agent when a Task is aborted.
 @REM The Process ID of the Task is supplied as the first (and only) parameter.
 @REM The script takes over all responsibility for aborting the Task and any
