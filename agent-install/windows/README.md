@@ -73,6 +73,16 @@ The Agent service was started by the installation in step (1), using `applicatio
 Restart-Service -Name yd-agent
 ```
 
+### Checking the Agent
+
+The Agent runs as the Windows service `yd-agent`, and its state can be checked using:
+
+```powershell
+Get-Service -Name yd-agent
+```
+
+The installation itself is recorded in the log file named in the `msiexec` command in step (1) -- `yd-agent-install.log`, in the directory from which the installer was run.
+
 ### Abort Handlers
 
 If a Task is aborted before it has concluded it can leave orphan processes (etc.) running and taking up resources. To prevent this, the Task Types include an *optional* `abort:` clause, pointing to a Windows batch script that can implement appropriate clean-up steps on abort.

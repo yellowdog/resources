@@ -2,11 +2,12 @@
 
 This README provides instructions for installing and configuring the YellowDog Agent on Windows systems for use within Configured Worker Pools.
 
-There are three steps:
+There are four steps:
 
 1. Download and install the YellowDog Agent
 2. Populate the YellowDog Agent configuration file `application.yaml`
 3. Start the YellowDog Agent service
+4. Check that the Agent is running
 
 The installation steps have been tested on Windows Server 2022.
 
@@ -160,5 +161,16 @@ sc.exe start yd-agent
 ```
 
 Both commands only need to be run once. Subsequently, the service will start automatically on every reboot.
+
+## (4) Check that the Agent is Running
+
+The Agent runs as the Windows service `yd-agent`, and its state can be checked using:
+
+```powershell
+Get-Service -Name yd-agent
+sc.exe qc yd-agent
+```
+
+The first command should report a status of `Running`, and the second should show `START_TYPE : 2   AUTO_START`. The installation itself is recorded in the log file named in the `msiexec` command in step (1) -- `yd-agent-install.log`, in the directory from which the installer was run.
 
 The Windows system should now appear in the Configured Worker Pool within the YellowDog Portal, and be available as a target for YellowDog Task Scheduling.
