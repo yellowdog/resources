@@ -32,7 +32,7 @@ msiexec /i yd-agent-17.4.0.msi /passive /l*v yd-agent-install.log
 ```
 Installation will show a progress bar but will not require user interaction.
 
-An optional `YD_AGENT_METADATA_PROVIDERS` argument can be supplied to the installer to optimise Agent startup. Set it with the appropriate provider name(s) for your image from these options: `AWS`, `AWS_V2`, `GOOGLE`, `AZURE`, `OCI` or `ALIBABA`, e.g.:
+An optional `YD_AGENT_METADATA_PROVIDERS` argument can be supplied to the installer to optimise Agent startup. Set it with the appropriate provider name(s) for your image from these options: `AWS`, `AWS_V2`, `AZURE`, `GOOGLE` or `OCI`, e.g.:
 
 ```bat
 msiexec /i yd-agent-17.4.0.msi /passive /l*v yd-agent-install.log YD_AGENT_METADATA_PROVIDERS=AWS
