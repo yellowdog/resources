@@ -8,6 +8,7 @@ The script is designed to work with recent Linux distributions based on **Debian
 
 - AlmaLinux 9.1
 - Amazon Linux 2
+- Amazon Linux 2023
 - CentOS Stream 9
 - Debian 11
 - Debian 12
@@ -28,19 +29,20 @@ The installation package contains the YellowDog Agent JAR file and a self-contai
 
 The installation process performs the following actions:
 
-1. Creates a new user and group `yd-agent` with home directory `/opt/yellowdog/agent`, and a data directory at `/var/opt/yellowdog/agent`. The installer unpacks the `agent.jar` file and the JRE into the Agent's home directory.
+1. Creates a new user and group `yd-agent` with home directory `/opt/yellowdog/agent`, and a data directory at `/var/opt/yellowdog/agent/data`. The installer unpacks the `agent.jar` file and the JRE into the Agent's home directory.
 2. Creates the Agent's configuration file (`application.yaml`) and its startup script, in the Agent's home directory.
 3. Configures the Agent as a `systemd` service and starts the `yd-agent` service.
+
+Output from the package installation and the service restart is recorded in `/var/log/yd-agent-install.log`. The script's own progress messages go to its standard output, prefixed with `*** YD`; if the script is supplied as instance user data these are captured in the instance's cloud-init output log.
 
 ## YellowDog Task Types
 
 By default, a single general-purpose YellowDog **Task Type**, `bash`, is defined, which runs Bash commands and scripts:
 
 ```yaml
-yda:
-  taskTypes:
-    - name: "bash"
-      run: "/bin/bash"
+yda.taskTypes:
+  - name: "bash"
+    run: "/bin/bash"
 ```
 
 Edit the following section of the installer script to customise Task Type(s) for your own requirements.
@@ -48,13 +50,18 @@ Edit the following section of the installer script to customise Task Type(s) for
 For example, to add a task type to run a specific executable you might edit the section of the script as follows:
 
 ```shell
-cat >> $YD_AGENT_HOME/application.yaml << EOM
+cat > $YD_AGENT_CONFIG << EOM
+yda.taskTypes:
   - name: "bash"
     run: "/bin/bash"
   - name: "my-task-type"
     run: "/usr/bin/my-executable"
+yda.metrics.script-path: "/opt/yellowdog/agent/bin/metrics.sh"
+yda.data-client.rclone-binary-path: "/opt/yellowdog/agent/bin/rclone"
 EOM
 ```
+
+Retain the `yda.metrics.script-path` and `yda.data-client.rclone-binary-path` settings: without them the Agent will not collect metrics or perform rclone-based data movement.
 
 ## Add passwordless sudo access for yd-agent
 
@@ -65,13 +72,14 @@ case $DISTRO in
   "ubuntu" | "debian")
     ADMIN_GRP="sudo"
     ;;
-  "almalinux" | "centos" | "rhel" | "amzn" | "fedora")
+  "almalinux" | "centos" | "rhel" | "amzn" | "fedora" | "rocky")
     ADMIN_GRP="wheel"
     ;;
   "sles" | "suse")
     ADMIN_GRP="wheel"
     ;;
   *)
+    yd_log "Cannot add sudo access on distro '$DISTRO' ... aborting"
     exit 1
     ;;
 esac
@@ -88,10 +96,10 @@ echo -e "$YD_AGENT_USER\tALL=(ALL)\tNOPASSWD: ALL" > \
 Add the following to the end of the script to add a public key for `yd-agent`, inserting the public key where indicated:
 
 ```shell
-yd_log "Adding public SSH key for $YD_AGENT_USER"
-
 SSH_USER="yd-agent"
 SSH_USER_HOME=$YD_AGENT_HOME
+
+yd_log "Adding public SSH key for $SSH_USER"
 
 mkdir -p $SSH_USER_HOME/.ssh
 chmod og-rwx $SSH_USER_HOME/.ssh
@@ -136,15 +144,15 @@ The following simple wrapper script is sometimes useful as an alternative to the
 ```shell
 #!/bin/bash
 
-cd /root || exit
+set -eu
+
+cd /root
 echo "Downloading the Agent installer script"
-wget https://raw.githubusercontent.com/yellowdog/resources/refs/heads/main/agent-install/linux/yd-agent-installer.sh
+curl -fLsS -o yd-agent-installer.sh \
+  https://raw.githubusercontent.com/yellowdog/resources/refs/heads/main/agent-install/linux/yd-agent-installer.sh
 
-# Install/update the Agent
+# Install/update the Agent; this also (re-)starts the Agent service
 bash yd-agent-installer.sh
-
-echo "Restarting the Agent Service"
-systemctl --no-block restart yd-agent.service
 ```
 
 When using dynamic Agent installation, bear in mind that **every** provisioned instance will incur the costs of downloading the YellowDog installation package (about 60MB). We therefore recommend against using this approach when provisioning instances at scale: use a custom image instead, with the Agent pre-installed.
@@ -167,8 +175,8 @@ The following set of variables is available for specifying the properties of an 
 | Property                      | Description                                                                                                                                                               |
 |-------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `YD_TOKEN` (Required)         | This is the token that identifies the Configured Worker Pool to which this instance belongs, and which allows the Agent to connect to the platform.                       |
-| `YD_INSTANCE_ID`              | An instance identifier, which must be unique within a Worker Pool. By default, the hostname found in `/etc/hostname` is used; if this is empty, a random ID is generated. |
-| `YD_HOSTNAME`                 | The hostname of the instance. By default, the hostname found in `/etc/hostname` is used.                                                                                  |
+| `YD_INSTANCE_ID`              | An instance identifier, which must be unique within a Worker Pool. By default, the value returned by the `hostname` command is used; if this is empty, a random ID is generated. Note that a random ID is not persisted, so it will differ on each run. |
+| `YD_HOSTNAME`                 | The hostname of the instance. By default, the value returned by the `hostname` command is used.                                                                                  |
 | `YD_REGION`                   | A string describing the region in which the instance is located. Empty by default.                                                                                        |
 | `YD_SOURCE_NAME`              | A string describing the 'source name' from which the instance comes, e.g.: "VMware 01". Empty by default.                                                                 |
 | `YD_INSTANCE_TYPE`            | A string describing the type of the instance. Empty by default.                                                                                                           |
@@ -180,4 +188,4 @@ The following set of variables is available for specifying the properties of an 
 | `YD_WORKER_TARGET_TYPE`       | Must be set to `"PER_NODE"` or `"PER_VCPU"`. By default, `"PER_NODE"`.                                                                                                    |
 | `YD_URL`                      | The URL of the YellowDog Platform's REST API. By default, `https://portal.yellowdog.co/api`.                                                                              |
 
-The installer script is idempotent. This is useful if one wants to update the version of the Agent, etc. Note, however, that all files (including `application.yaml`) will be overwritten.
+Note that re-running the script overwrites all files, including `application.yaml`, so any changes made to the Agent's configuration by hand will be lost.
