@@ -89,10 +89,10 @@ echo -e "$YD_AGENT_USER\tALL=(ALL)\tNOPASSWD: ALL" > \
 Add the following to the end of the script to add a public key for `yd-agent`, inserting the public key where indicated:
 
 ```shell
-yd_log "Adding public SSH key for $YD_AGENT_USER"
-
 SSH_USER="yd-agent"
 SSH_USER_HOME=$YD_AGENT_HOME
+
+yd_log "Adding public SSH key for $SSH_USER"
 
 mkdir -p $SSH_USER_HOME/.ssh
 chmod og-rwx $SSH_USER_HOME/.ssh
