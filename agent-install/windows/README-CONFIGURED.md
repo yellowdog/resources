@@ -89,6 +89,39 @@ logging.pattern.console: "%d{yyyy-MM-dd HH:mm:ss.SSS} Worker[%10.10thread] %-5le
 
 Adjust the contents of the `application.yaml` file as required -- e.g., to add your own Task Types. For full details of the available options please see the [YellowDog Documentation](https://docs.yellowdog.co/#/the-platform/using-variables-in-the-configuration-file).
 
+Two adjustments are recommended for any long-lived on-premise machine, and are described below.
+
+### Node Identity
+
+The default `instanceId` of `${random.uuid}` changes each time the Agent is started, so the machine is registered as a new node on every restart. Set `instanceId` to a value that is durable and unique within the Worker Pool -- the machine's hostname is usually the most convenient choice -- and set the `hostname` property to match:
+
+```yaml
+yda:
+  instanceId: "my-machine-name"
+  hostname: "my-machine-name"
+```
+
+This is what the [Linux installer script](../linux/README.md) in this repository does for Configured Worker Pool nodes, using the output of `hostname` for both properties.
+
+### Node Resources
+
+For a Configured Worker Pool node there is no cloud provider to describe the machine, so nothing will supply its resource details unless the Agent's configuration does. Add the number of vCPUs and the amount of RAM (in GB) within the `yda:` block:
+
+```yaml
+yda:
+  vcpus: "8"
+  ram: "32.0"
+```
+
+The values for the local machine can be found using PowerShell:
+
+```powershell
+(Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
+[math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB, 1)
+```
+
+Other optional properties describing the node -- including `region`, `instanceType`, `sourceName`, `privateIpAddress` and `publicIpAddress` -- can be set in the same way.
+
 ### Abort Handlers
 
 If a Task is aborted before it has concluded it can leave orphan processes (etc.) running and taking up resources. To prevent this, the Task Types include an *optional* `abort:` clause, pointing to a Windows batch script that can implement appropriate clean-up steps on abort.
