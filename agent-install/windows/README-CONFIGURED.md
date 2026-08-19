@@ -31,7 +31,7 @@ msiexec /i yd-agent-17.4.0.msi /passive /log yd-agent-install.log SERVICE_STARTU
 ```
 Installation will show a progress bar but will not require user interaction.
 
-The `YD_AGENT_METADATA_PROVIDERS` parameter should be set to `NONE` for configured installations.
+The `YD_AGENT_METADATA_PROVIDERS` parameter should be set to `NONE` for configured installations, because there is no cloud instance metadata service for the Agent to interrogate. The installer records the value as a system environment variable, so it can be changed subsequently by editing the environment variable and restarting the Agent service, instead of by reinstalling.
 
 The `SERVICE_STARTUP=Manual` parameter stops the Agent service from starting up before its configuration has been populated in step (2). This parameter sets the service's startup type permanently, which is why step (3) below sets it back to `Automatic`.
 

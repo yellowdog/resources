@@ -38,6 +38,10 @@ An optional `YD_AGENT_METADATA_PROVIDERS` argument can be supplied to the instal
 msiexec /i yd-agent-17.4.0.msi /passive /log yd-agent-install.log YD_AGENT_METADATA_PROVIDERS=AWS
 ```
 
+A value of `NONE` is also accepted, for systems that are not cloud-provisioned -- see the [Configured Worker Pool guide](README-CONFIGURED.md).
+
+The installer records the value as a system environment variable, so it can be changed subsequently by editing the environment variable and restarting the Agent service, instead of by reinstalling.
+
 ## (2) Populate the YellowDog Agent Configuration File
 
 Edit the file `C:\Program Files\YellowDog\Agent\config\application.yaml` to insert the **Task Types** that will be supported -- e.g.:
