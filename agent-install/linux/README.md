@@ -65,13 +65,14 @@ case $DISTRO in
   "ubuntu" | "debian")
     ADMIN_GRP="sudo"
     ;;
-  "almalinux" | "centos" | "rhel" | "amzn" | "fedora")
+  "almalinux" | "centos" | "rhel" | "amzn" | "fedora" | "rocky")
     ADMIN_GRP="wheel"
     ;;
   "sles" | "suse")
     ADMIN_GRP="wheel"
     ;;
   *)
+    yd_log "Cannot add sudo access on distro '$DISTRO' ... aborting"
     exit 1
     ;;
 esac
