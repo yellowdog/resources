@@ -25,6 +25,14 @@ The script downloads the latest installation package from YellowDog's Nexus soft
 
 The installation package contains the YellowDog Agent JAR file and a self-contained Java Runtime Environment (JRE).
 
+**Note on `arm64`:** at present only the Debian-based (`.deb`) packages install successfully on `arm64`. The `arm64` RPM package declares its architecture as `arm64`, whereas RPM on an `aarch64` host accepts only `aarch64`, so installation fails with:
+
+```
+package yd-agent-<version>.arm64 is intended for a different architecture
+```
+
+Until the package's architecture label is corrected, use `amd64` instances for RPM-based distributions, or a Debian-based distribution on `arm64`. The distributions listed above were tested on `amd64`.
+
 ## Installation Actions
 
 The installation process performs the following actions:
