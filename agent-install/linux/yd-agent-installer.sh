@@ -31,6 +31,18 @@ fi
 
 safe_grep() { grep "$@" || test $? = 1; }
 
+# Accept TRUE/FALSE in any case, and reject anything else rather than silently
+# treating it as FALSE and installing a node that never registers
+case "$YD_CONFIGURED_WP" in
+  [Tt][Rr][Uu][Ee])     YD_CONFIGURED_WP="TRUE" ;;
+  [Ff][Aa][Ll][Ss][Ee]) YD_CONFIGURED_WP="FALSE" ;;
+  *)
+    yd_log "YD_CONFIGURED_WP must be TRUE or FALSE," \
+           "not '$YD_CONFIGURED_WP' ... aborting"
+    exit 1
+    ;;
+esac
+
 ################################################################################
 
 yd_log "Checking distro using 'ID' from '/etc/os-release'"
