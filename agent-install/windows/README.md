@@ -8,42 +8,44 @@ There are five steps:
 2. Populate the YellowDog Agent configuration file `application.yaml`
 3. Optional: Install CloudBase-Init (only required if there's a need to run user-supplied (userdata) scripts at instance boot time)
 4. Create a custom image (e.g., an AWS AMI) based on the Windows instance that can be used for subsequent provisioning.
-5. Register the image in a YellowDog Image Family of type `Windows`
-
-The installation steps have been tested on Windows Server 2019 and Windows Server 2022, on instances running in AWS.
+5. Register the image in a YellowDog Image Family of type `Windows`.
 
 ## (1) Download and Install the YellowDog Agent
 
-1. The current version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-17.4.0.msi.
+1. The current version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-17.4.0.msi. All available versions can be browsed at https://nexus.yellowdog.tech/service/rest/repository/browse/raw-public/agent/msi/.
 
 The installer includes a self-contained, minimal version of Java, required for Agent execution.
 
-To download the latest version from the PowerShell command line:
+To download this version from the PowerShell command line:
 
-```shell
+```powershell
 $ProgressPreference = "SilentlyContinue"
 Invoke-WebRequest -Uri 'https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-17.4.0.msi' -OutFile yd-agent-17.4.0.msi
 ```
 
 2. In the directory to which the file has been downloaded, run the installer from the command line as Administrator:
 
-```shell
-msiexec /i yd-agent-17.4.0.msi /passive /log yd-agent-install.log
+```bat
+msiexec /i yd-agent-17.4.0.msi /passive /l*v yd-agent-install.log
 ```
 Installation will show a progress bar but will not require user interaction.
 
-An optional `YD_AGENT_METADATA_PROVIDERS` argument can be supplied to the installer to optimise Agent startup. Set it with the appropriate provider name(s) for your image from these options: `AWS`, `AWS_V2`, `GOOGLE`, `AZURE`, `OCI` or `ALIBABA`, e.g.:
+An optional `YD_AGENT_METADATA_PROVIDERS` argument can be supplied to the installer to optimise Agent startup. Set it with the appropriate provider name(s) for your image from these options: `AWS`, `AWS_V2`, `AZURE`, `GOOGLE` or `OCI`, e.g.:
 
-```shell
-msiexec /i yd-agent-17.4.0.msi /passive /log yd-agent-install.log YD_AGENT_METADATA_PROVIDERS=AWS
+```bat
+msiexec /i yd-agent-17.4.0.msi /passive /l*v yd-agent-install.log YD_AGENT_METADATA_PROVIDERS=AWS
 ```
+
+A value of `NONE` is also accepted, for systems that are not cloud-provisioned -- see the [Configured Worker Pool guide](README-CONFIGURED.md).
+
+The installer records the value as a system environment variable, so it can be changed subsequently by editing the environment variable and restarting the Agent service, instead of by reinstalling.
 
 ## (2) Populate the YellowDog Agent Configuration File
 
 Edit the file `C:\Program Files\YellowDog\Agent\config\application.yaml` to insert the **Task Types** that will be supported -- e.g.:
 
-```commandline
-notepad C:\Program Files\YellowDog\Agent\config\application.yaml
+```powershell
+notepad "C:\Program Files\YellowDog\Agent\config\application.yaml"
 ```
 
 An example populated `application.yaml` configuration file is shown below:
@@ -59,11 +61,13 @@ yda.taskTypes:
 
 yda.metrics.script-path: "${YD_AGENT_DATA}/scripts/metrics.bat"
 yda.data-client.rclone-binary-path: "${YD_AGENT_HOME}/bin/rclone.exe"
-
-logging.pattern.console: "%d{yyyy-MM-dd HH:mm:ss.SSS} Worker[%10.10thread] %-5level[%40logger{40}] %message [%class{0}:%method:%line]%n"
 ```
 
 Note that this will set up flexible but liberal Task Types that can execute arbitrary commands on the instance. For production use, specific custom Task Type scripts are recommended.
+
+The `application.yaml` file supplied by the installer already contains the `yda.metrics.script-path` and `yda.data-client.rclone-binary-path` settings shown above, together with an empty `yda.taskTypes:` entry. Retain the metrics and rclone settings: without them the Agent will not collect metrics or perform rclone-based data movement.
+
+The Agent service does not need to be restarted here: the installer does not start it, so it is not running on the instance being used to build the image. The configuration edited above takes effect when an instance provisioned from the image boots.
 
 ### Abort Handlers
 
@@ -73,7 +77,7 @@ If the `abort:` clause is present its batch file will be called by the Agent on 
 
 The YellowDog Agent Installer supplies a default abort handler, found in `C:\ProgramData\YellowDog\Agent\scripts\yd_abort.bat`. This simple handler will kill the Task process and its entire process tree, as shown below:
 
-```
+```bat
 @REM This script is called by the YellowDog Agent when a Task is aborted.
 @REM The Process ID of the Task is supplied as the first (and only) parameter.
 @REM The script takes over all responsibility for aborting the Task and any
@@ -84,6 +88,25 @@ taskkill /F /T /PID %1
 
 You can add your own abort handler(s) if more sophisticated abort handling is required.
 
+### Checking the Agent
+
+The Agent runs as the Windows service `yd-agent`, and its state can be checked using:
+
+```powershell
+Get-Service -Name yd-agent
+```
+
+A status of `Stopped` is expected on the instance being used to build the image -- the installer does not start the service -- and is not a sign that the installation has failed.
+
+The installation itself is recorded in the log file named in the `msiexec` command in step (1) -- `yd-agent-install.log`, in the directory from which the installer was run.
+
+The Agent logs to its console, and the service launcher redirects that output to two files in the installation directory:
+
+- `C:\Program Files\YellowDog\Agent\output.log`
+- `C:\Program Files\YellowDog\Agent\error.log`
+
+These two paths are recorded in the `Agent.ini` file alongside them, and can be changed there if required, restarting the Agent service afterwards. Note that the files are not rotated, and that the launcher is not configured to append to them, so they are best treated as the output of the current run of the Agent rather than as a complete history.
+
 ## (3) Optional: Download and Install CloudBase-Init
 
 **[CloudBase-Init](https://cloudbase.it/cloudbase-init/)** runs at instance boot time and is used to execute user-supplied scripts/actions on the instance.
@@ -92,14 +115,14 @@ You can add your own abort handler(s) if more sophisticated abort handling is re
 
 To download the latest version using the command line:
 
-```shell
+```powershell
 $ProgressPreference = "SilentlyContinue"
 Invoke-WebRequest -Uri 'https://www.cloudbase.it/downloads/CloudbaseInitSetup_Stable_x64.msi' -OutFile CloudbaseInitSetup_Stable_x64.msi
 ```
 
 2. In the directory to which the file has been downloaded, run the installer from the command line as Administrator using the following command:
 
-```shell
+```bat
 msiexec /i CloudbaseInitSetup_Stable_x64.msi /passive /l*v cloudbase-init-install.log
 ```
 
@@ -107,7 +130,13 @@ Installation will show a progress bar but will not require user interaction.
 
 ## (4) Create a Custom Image
 
-The instance is now ready for creation of a custom image for use with YellowDog. Make a note of the ID of the custom image that is created, for use below.
+The instance is now ready for creation of a custom image for use with YellowDog.
+
+The Agent service requires no attention before the image is captured: it is not running, and its startup type of `Automatic` is carried into the image, so the Agent will start when an instance provisioned from the image boots, taking its identity from the instance metadata at that point.
+
+Follow your cloud provider's own procedure for generalising and capturing a Windows image -- e.g., the Sysprep support provided by EC2Launch v2 on AWS. If CloudBase-Init was installed in step (3), please also see its [Sysprepping](https://cloudbase-init.readthedocs.io/en/latest/tutorial.html#sysprepping) documentation; note that the installer's optional Sysprep step is not performed by the unattended `msiexec` command shown above.
+
+Make a note of the ID of the custom image that is created, for use below.
 
 ## (5) Register the Image within a YellowDog Windows Image Family
 
@@ -119,3 +148,9 @@ The Windows custom image must be registered within a YellowDog Windows Image Fam
 Add a Windows Image Family (named, e.g., `win-yd-agent` in namespace `win-test`), an Image Group (e.g., `v5_0_3`) and an image (e.g., `win-2022-eu-west-2`) pointing to the image ID of the custom image you've created.
 
 In provisioning requests, the ID or name (e.g., `yd/win-test/win-yd-agent`) of the Image Family you've just created should be used, and YellowDog will then automatically select the correct image (the most recent version applicable to the cloud provider and region).
+
+## Upgrading the Agent
+
+Installing a newer version of the Agent is a major upgrade: the installed version is removed first, and `application.yaml` is replaced by the file supplied with the new package. This was confirmed by upgrading v17.1.1 to v17.4.0.
+
+So if a new custom image is built by installing a newer Agent on an instance created from an earlier image, step (2) must be repeated -- keep a record of the Task Types and any other settings that were added.
