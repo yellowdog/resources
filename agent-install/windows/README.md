@@ -8,9 +8,7 @@ There are five steps:
 2. Populate the YellowDog Agent configuration file `application.yaml`
 3. Optional: Install CloudBase-Init (only required if there's a need to run user-supplied (userdata) scripts at instance boot time)
 4. Create a custom image (e.g., an AWS AMI) based on the Windows instance that can be used for subsequent provisioning.
-5. Register the image in a YellowDog Image Family of type `Windows`
-
-The installation steps have been tested on Windows Server 2019 and Windows Server 2022, on instances running in AWS.
+5. Register the image in a YellowDog Image Family of type `Windows`.
 
 ## (1) Download and Install the YellowDog Agent
 
@@ -150,3 +148,9 @@ The Windows custom image must be registered within a YellowDog Windows Image Fam
 Add a Windows Image Family (named, e.g., `win-yd-agent` in namespace `win-test`), an Image Group (e.g., `v5_0_3`) and an image (e.g., `win-2022-eu-west-2`) pointing to the image ID of the custom image you've created.
 
 In provisioning requests, the ID or name (e.g., `yd/win-test/win-yd-agent`) of the Image Family you've just created should be used, and YellowDog will then automatically select the correct image (the most recent version applicable to the cloud provider and region).
+
+## Upgrading the Agent
+
+Installing a newer version of the Agent is a major upgrade: the installed version is removed first, and `application.yaml` is replaced by the file supplied with the new package. This was confirmed by upgrading v17.1.1 to v17.4.0.
+
+So if a new custom image is built by installing a newer Agent on an instance created from an earlier image, step (2) must be repeated -- keep a record of the Task Types and any other settings that were added.

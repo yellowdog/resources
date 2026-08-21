@@ -81,9 +81,6 @@ yda:
 
   # The target URL. This value should remain the same.
   services-schema.default-url: "https://portal.yellowdog.co/api/"
-
-# The pattern used when logging. This is a default value and can be changed.
-logging.pattern.console: "%d{yyyy-MM-dd HH:mm:ss.SSS} Worker[%10.10thread] %-5level[%40logger{40}] %message [%class{0}:%method:%line]%n"
 ```
 
 Adjust the contents of the `application.yaml` file as required -- e.g., to add your own Task Types. For full details of the available options please see the [YellowDog Documentation](https://docs.yellowdog.co/#/the-platform/using-variables-in-the-configuration-file).
@@ -179,3 +176,11 @@ The Agent logs to its console, and the service launcher redirects that output to
 These two paths are recorded in the `Agent.ini` file alongside them, and can be changed there if required, restarting the Agent service afterwards. Note that the files are not rotated, and that the launcher is not configured to append to them, so they are best treated as the output of the current run of the Agent rather than as a complete history.
 
 The Windows system should now appear in the Configured Worker Pool within the YellowDog Portal, and be available as a target for YellowDog Task Scheduling.
+
+## Upgrading the Agent
+
+Installing a newer version of the Agent is a major upgrade: the installed version is removed first, and `application.yaml` is replaced by the default file supplied with the new package. This was confirmed by upgrading v17.1.1 to v17.4.0.
+
+Take a copy of `application.yaml` before upgrading. Without it, the Worker Pool token and the rest of the configuration populated in step (2) are lost and the node will not rejoin its Worker Pool -- although the configuration can be obtained from the Portal again, as described in step (2).
+
+Installing the upgrade using the command shown in step (1) leaves the service stopped, with its startup type set to `Manual`, so steps (2) to (4) can simply be repeated afterwards.
