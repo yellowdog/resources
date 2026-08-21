@@ -171,4 +171,11 @@ sc.exe qc yd-agent
 
 The first command should report a status of `Running`, and the second should show `START_TYPE : 2   AUTO_START`. The installation itself is recorded in the log file named in the `msiexec` command in step (1) -- `yd-agent-install.log`, in the directory from which the installer was run.
 
+The Agent logs to its console, and the service launcher redirects that output to two files in the installation directory:
+
+- `C:\Program Files\YellowDog\Agent\output.log`
+- `C:\Program Files\YellowDog\Agent\error.log`
+
+These two paths are recorded in the `Agent.ini` file alongside them, and can be changed there if required, restarting the Agent service afterwards. Note that the files are not rotated, and that the launcher is not configured to append to them, so they are best treated as the output of the current run of the Agent rather than as a complete history.
+
 The Windows system should now appear in the Configured Worker Pool within the YellowDog Portal, and be available as a target for YellowDog Task Scheduling.

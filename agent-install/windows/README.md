@@ -63,8 +63,6 @@ yda.taskTypes:
 
 yda.metrics.script-path: "${YD_AGENT_DATA}/scripts/metrics.bat"
 yda.data-client.rclone-binary-path: "${YD_AGENT_HOME}/bin/rclone.exe"
-
-logging.pattern.console: "%d{yyyy-MM-dd HH:mm:ss.SSS} Worker[%10.10thread] %-5level[%40logger{40}] %message [%class{0}:%method:%line]%n"
 ```
 
 Note that this will set up flexible but liberal Task Types that can execute arbitrary commands on the instance. For production use, specific custom Task Type scripts are recommended.
@@ -105,6 +103,13 @@ Get-Service -Name yd-agent
 ```
 
 The installation itself is recorded in the log file named in the `msiexec` command in step (1) -- `yd-agent-install.log`, in the directory from which the installer was run.
+
+The Agent logs to its console, and the service launcher redirects that output to two files in the installation directory:
+
+- `C:\Program Files\YellowDog\Agent\output.log`
+- `C:\Program Files\YellowDog\Agent\error.log`
+
+These two paths are recorded in the `Agent.ini` file alongside them, and can be changed there if required, restarting the Agent service afterwards. Note that the files are not rotated, and that the launcher is not configured to append to them, so they are best treated as the output of the current run of the Agent rather than as a complete history.
 
 ## (3) Optional: Download and Install CloudBase-Init
 
