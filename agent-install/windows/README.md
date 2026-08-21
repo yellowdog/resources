@@ -69,7 +69,7 @@ Note that this will set up flexible but liberal Task Types that can execute arbi
 
 The `application.yaml` file supplied by the installer already contains the `yda.metrics.script-path` and `yda.data-client.rclone-binary-path` settings shown above, together with an empty `yda.taskTypes:` entry. Retain the metrics and rclone settings: without them the Agent will not collect metrics or perform rclone-based data movement.
 
-The Agent service does not need to be restarted here. On the instance being used to build the image the Agent has no valid configuration or instance metadata available to it, so the service stops of its own accord; the configuration edited above takes effect when an instance provisioned from the image boots.
+The Agent service does not need to be restarted here: the installer does not start it, so it is not running on the instance being used to build the image. The configuration edited above takes effect when an instance provisioned from the image boots.
 
 ### Abort Handlers
 
@@ -98,7 +98,7 @@ The Agent runs as the Windows service `yd-agent`, and its state can be checked u
 Get-Service -Name yd-agent
 ```
 
-On the instance being used to build the image a status of `Stopped` is expected, for the reason given above, and is not a sign that the installation has failed.
+A status of `Stopped` is expected on the instance being used to build the image -- the installer does not start the service -- and is not a sign that the installation has failed.
 
 The installation itself is recorded in the log file named in the `msiexec` command in step (1) -- `yd-agent-install.log`, in the directory from which the installer was run.
 
@@ -134,7 +134,7 @@ Installation will show a progress bar but will not require user interaction.
 
 The instance is now ready for creation of a custom image for use with YellowDog.
 
-The Agent service requires no attention before the image is captured: it is already stopped, and its startup type of `Automatic` is carried into the image, so the Agent will start when an instance provisioned from the image boots, taking its identity from the instance metadata at that point.
+The Agent service requires no attention before the image is captured: it is not running, and its startup type of `Automatic` is carried into the image, so the Agent will start when an instance provisioned from the image boots, taking its identity from the instance metadata at that point.
 
 Follow your cloud provider's own procedure for generalising and capturing a Windows image -- e.g., the Sysprep support provided by EC2Launch v2 on AWS. If CloudBase-Init was installed in step (3), please also see its [Sysprepping](https://cloudbase-init.readthedocs.io/en/latest/tutorial.html#sysprepping) documentation; note that the installer's optional Sysprep step is not performed by the unattended `msiexec` command shown above.
 
