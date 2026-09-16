@@ -12,7 +12,7 @@ There are five steps:
 
 ## (1) Download and Install the YellowDog Agent
 
-1. The current version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-18.0.0.msi. All available versions can be browsed at https://nexus.yellowdog.tech/service/rest/repository/browse/raw-public/agent/msi/.
+1. The current version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-19.0.0.msi. All available versions can be browsed at https://nexus.yellowdog.tech/service/rest/repository/browse/raw-public/agent/msi/.
 
 The installer includes a self-contained, minimal version of Java, required for Agent execution.
 
@@ -20,20 +20,20 @@ To download this version from the PowerShell command line:
 
 ```powershell
 $ProgressPreference = "SilentlyContinue"
-Invoke-WebRequest -Uri 'https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-18.0.0.msi' -OutFile yd-agent-18.0.0.msi
+Invoke-WebRequest -Uri 'https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-19.0.0.msi' -OutFile yd-agent-19.0.0.msi
 ```
 
 2. In the directory to which the file has been downloaded, run the installer from the command line as Administrator:
 
 ```bat
-msiexec /i yd-agent-18.0.0.msi /passive /l*v yd-agent-install.log
+msiexec /i yd-agent-19.0.0.msi /passive /l*v yd-agent-install.log
 ```
 Installation will show a progress bar but will not require user interaction.
 
 An optional `YD_AGENT_METADATA_PROVIDERS` argument can be supplied to the installer to optimise Agent startup. Set it with the appropriate provider name(s) for your image from these options: `AWS`, `AWS_V2`, `AZURE`, `GOOGLE` or `OCI`, e.g.:
 
 ```bat
-msiexec /i yd-agent-18.0.0.msi /passive /l*v yd-agent-install.log YD_AGENT_METADATA_PROVIDERS=AWS
+msiexec /i yd-agent-19.0.0.msi /passive /l*v yd-agent-install.log YD_AGENT_METADATA_PROVIDERS=AWS
 ```
 
 A value of `NONE` is also accepted, for systems that are not cloud-provisioned -- see the [Configured Worker Pool guide](README-CONFIGURED.md).
@@ -151,6 +151,6 @@ In provisioning requests, the ID or name (e.g., `yd/win-test/win-yd-agent`) of t
 
 ## Upgrading the Agent
 
-Installing a newer version of the Agent is a major upgrade: the installed version is removed first, and `application.yaml` is replaced by the file supplied with the new package. This was confirmed by upgrading v17.1.1 to v18.0.0.
+Installing a newer version of the Agent is a major upgrade: the installed version is removed first, and `application.yaml` is replaced by the file supplied with the new package. This was confirmed by upgrading v17.1.1 to v19.0.0.
 
 So if a new custom image is built by installing a newer Agent on an instance created from an earlier image, step (2) must be repeated -- keep a record of the Task Types and any other settings that were added.
