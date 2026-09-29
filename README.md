@@ -7,3 +7,4 @@ The YellowDog Scheduler requires instances to run the YellowDog Agent in order t
 - [Installing the YellowDog Agent on Linux](agent-install/linux/README.md)
 - [Installing the YellowDog Agent on Cloud-Provisioned Windows Systems](agent-install/windows/README.md)
 - [Installing the YellowDog Agent on On-Premise Windows Systems](agent-install/windows/README-CONFIGURED.md)
+- [Windows Agent installer script (draft)](agent-install/windows/README-INSTALLER.md)
