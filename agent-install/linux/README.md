@@ -39,7 +39,33 @@ The installation process performs the following actions:
 2. Creates the Agent's configuration file (`application.yaml`) and its startup script, in the Agent's home directory.
 3. Configures the Agent as a `systemd` service and starts the `yd-agent` service.
 
-Output from the package installation and the service restart is recorded in `/var/log/yd-agent-install.log`. The script's own progress messages go to its standard output, prefixed with `*** YD`; if the script is supplied as instance user data these are captured in the instance's cloud-init output log.
+Output from the package installation and the service restart is recorded in `/var/log/yd-agent-install.log`. The script's own progress messages go to its standard output, prefixed with `*** YD`; if the script is supplied as instance user data these are captured in the instance's cloud-init output log. If a step fails, the script prints the last lines of the install log and stops.
+
+## How the Script Works
+
+The script must be run as root (`bash yd-agent-installer.sh`). It:
+
+1. Checks its settings (see below) before changing anything.
+2. Detects the distribution from `ID` in `/etc/os-release`, falling back to the first recognised entry in `ID_LIKE` for derivative distributions (e.g., Oracle Linux is treated as `fedora`), and the architecture (`amd64` or `arm64`). It stops if either is not supported.
+3. Finds the highest Agent version available in YellowDog's Nexus repository, then downloads and installs that `.deb` or `.rpm` package. Downloads are retried, since user data runs while the network may still be starting.
+4. Saves any existing `application.yaml` as `application.yaml.backup.<timestamp>`, then writes a new one. Any hand edits to the file are replaced, but they are kept in the backup.
+5. Restarts the `yd-agent` service, without waiting for it to finish starting.
+
+The script can be re-run at any time, e.g., to upgrade the Agent in place.
+
+It requires `bash`, `curl` (7.52 or later), `systemd` and GNU coreutils, all of which are present on the distributions listed above.
+
+The Agent's home directory is always `/opt/yellowdog/agent`: it is set by the Agent package and cannot be changed.
+
+## Script Settings
+
+The following variables control the script. Each can be exported in the environment before the script runs, or edited in the script itself.
+
+| Variable             | Description                                                                                                                                         |
+|----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `YD_AGENT_REPO_URL`  | The Nexus download URL for Agent packages. It must end in `/download`. By default, `https://nexus.yellowdog.tech/service/rest/v1/search/assets/download`. |
+| `YD_AGENT_REPO_NAME` | The Nexus repository name. By default, `raw-public`.                                                                                                |
+| `YD_CONFIGURED_WP`   | `TRUE` to install for a Configured Worker Pool (see [below](#configured-worker-pool-installation)), `FALSE` otherwise. Case is ignored, and any other value stops the script. By default, `FALSE`. |
 
 ## YellowDog Task Types
 
@@ -144,6 +170,8 @@ User data scripts can be concatenated using the `userDataFiles` property, for ex
 [workerPool]
 userDataFiles = ["set-variables.sh", "yd-agent-installer.sh", "add-sudo.sh"]
 ```
+
+Scripts placed after the installer run in the same shell, so they can use the `$DISTRO` and `$YD_AGENT_HOME` variables and the `yd_log` function that it defines, as in the examples above.
 
 The following simple wrapper script is sometimes useful as an alternative to the full installer script (which is downloaded then run). The script is more compact, hence uses less of the user data payload budget.
 

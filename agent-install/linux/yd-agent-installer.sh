@@ -1,178 +1,123 @@
 #!/bin/bash
+# YellowDog Agent installer for Linux: installs or upgrades the Agent, writes
+# application.yaml and restarts the service. Run as root. Documentation:
+# https://github.com/yellowdog/resources/tree/main/agent-install/linux
 
-# YellowDog Agent installer script.
-
-# Set package repository details
+# Nexus repository (the URL must end in '/download')
 YD_AGENT_REPO_URL="${YD_AGENT_REPO_URL:-\
 https://nexus.yellowdog.tech/service/rest/v1/search/assets/download}"
 YD_AGENT_REPO_NAME="${YD_AGENT_REPO_NAME:-raw-public}"
-
-# Set to "TRUE" for a Configured Worker Pool installation
+# "TRUE" for a Configured Worker Pool, which also needs YD_TOKEN (see README)
 YD_CONFIGURED_WP="${YD_CONFIGURED_WP:-FALSE}"
-
-# Set Agent home directory
+# Fixed by the Agent package, so not overridable
 YD_AGENT_HOME="/opt/yellowdog/agent"
 
-################################################################################
-
 set -euo pipefail
+yd_log () { echo -e "*** YD" "$(date -u "+%Y-%m-%d_%H%M%S_UTC"):" "$@"; }
+yd_die () { yd_log "$@ ... aborting"; exit 1; }
+safe_grep () { grep "$@" || test $? = 1; }
 
-yd_log () {
-  echo -e "*** YD" "$(date -u "+%Y-%m-%d_%H%M%S_UTC"):" "$@"
-}
-
+# Log a command's output, and show its tail on failure (as user data, the
+# console log is the only record)
 YD_INSTALL_LOG="/var/log/yd-agent-install.log"
-
-# Run a command quietly, but surface its output if it fails: this script
-# usually runs as instance user data, where the captured console log is the
-# only record of what went wrong
 yd_run () {
-  if ! "$@" >> "$YD_INSTALL_LOG" 2>&1; then
-    yd_log "Command failed: $*"
-    yd_log "Last 20 lines of $YD_INSTALL_LOG:"
-    tail -n 20 "$YD_INSTALL_LOG" >&2
-    return 1
-  fi
+  "$@" >> "$YD_INSTALL_LOG" 2>&1 && return
+  yd_log "Command failed: $*"; yd_log "Last 20 lines of $YD_INSTALL_LOG:"
+  tail -n 20 "$YD_INSTALL_LOG" >&2; return 1
 }
 
 yd_log "Starting YellowDog Agent Setup"
-
-if [[ "$EUID" -ne 0 ]]; then
-  yd_log "Please run as root ... aborting"
-  exit 1
-fi
-
-safe_grep() { grep "$@" || test $? = 1; }
-
-# Accept TRUE/FALSE in any case, and reject anything else rather than silently
-# treating it as FALSE and installing a node that never registers
+[[ $EUID -eq 0 ]] || yd_die "Please run as root"
 case "$YD_CONFIGURED_WP" in
-  [Tt][Rr][Uu][Ee])     YD_CONFIGURED_WP="TRUE" ;;
+  [Tt][Rr][Uu][Ee]) YD_CONFIGURED_WP="TRUE" ;;
   [Ff][Aa][Ll][Ss][Ee]) YD_CONFIGURED_WP="FALSE" ;;
-  *)
-    yd_log "YD_CONFIGURED_WP must be TRUE or FALSE," \
-           "not '$YD_CONFIGURED_WP' ... aborting"
-    exit 1
-    ;;
+  *) yd_die "YD_CONFIGURED_WP must be TRUE or FALSE, not '$YD_CONFIGURED_WP'" ;;
 esac
+# Validate before changing anything
+[[ $YD_CONFIGURED_WP == "FALSE" || -n "${YD_TOKEN:-}" ]] ||
+  yd_die "YD_TOKEN must be set for a Configured Worker Pool install"
 
-# Validate up front: failing later would leave the package upgraded, the
-# existing configuration replaced and the service not restarted
-if [[ $YD_CONFIGURED_WP == "TRUE" && -z "${YD_TOKEN:-}" ]]; then
-  yd_log "Error: YD_TOKEN must be set for a Configured Worker Pool install"
-  exit 1
+yd_os_release () {
+  safe_grep "^$1=" /etc/os-release | sed -e "s/^$1=//" -e 's/"//g'
+}
+yd_package_type () {
+  case $1 in
+    ubuntu | debian) echo "deb" ;;
+    almalinux | centos | rhel | amzn | fedora | sles | suse | rocky) echo "rpm" ;;
+  esac
+}
+# 'ID', else the first recognised 'ID_LIKE' entry (Oracle Linux -> fedora).
+# Later user data fragments use DISTRO too
+DISTRO=$(yd_os_release ID | awk '{print $1}')
+PACKAGE=$(yd_package_type "$DISTRO")
+if [[ -z $PACKAGE ]]; then
+  for LIKE in $(yd_os_release ID_LIKE); do
+    PACKAGE=$(yd_package_type "$LIKE")
+    if [[ -n $PACKAGE ]]; then DISTRO=$LIKE; break; fi
+  done
 fi
-
-################################################################################
-
-yd_log "Checking distro using 'ID' from '/etc/os-release'"
-DISTRO=$(safe_grep "^ID=" /etc/os-release | sed -e 's/ID=//' \
-         | sed -e 's/"//g' | awk '{print $1}')
-if [[ "$DISTRO" == "" ]]; then
-  yd_log "Checking distro using 'ID_LIKE' from '/etc/os-release'"
-  DISTRO=$(safe_grep "^ID_LIKE=" /etc/os-release | sed -e 's/ID_LIKE=//' \
-           | sed -e 's/"//g' | awk '{print $1}')
-fi
-yd_log "Using distro = $DISTRO"
-
-ARCH=$(uname -m)
-if [[ "$ARCH" == "x86_64" ]]
-then
-  ARCH="amd64"
-fi
-if [[ "$ARCH" == "aarch64" ]]
-then
-  ARCH="arm64"
-fi
-yd_log "Using arch = $ARCH"
-
-case $DISTRO in
-  "ubuntu" | "debian")
-    PACKAGE="deb"
-    ;;
-  "almalinux" | "centos" | "rhel" | "amzn" | "fedora" | "sles" | "suse" | "rocky" )
-    PACKAGE="rpm"
-    ;;
-  *)
-    yd_log "Unknown distribution ... exiting"
-    exit 1
-    ;;
+[[ -n $PACKAGE ]] || yd_die "Unknown distribution '$DISTRO'"
+case $(uname -m) in
+  x86_64) ARCH="amd64" ;;
+  aarch64) ARCH="arm64" ;;
+  *) yd_die "Unsupported architecture '$(uname -m)'" ;;
 esac
+yd_log "Using distro = $DISTRO, arch = $ARCH"
 
-################################################################################
-
-# Download into a private directory: a predictable path in a world-writable
-# /tmp lets a local user redirect what root is about to install
+# Private directory: a fixed path in /tmp could be redirected by a local user
 PACKAGE_DIR="$(mktemp -d)"
 trap 'rm -rf "$PACKAGE_DIR"' EXIT
 PACKAGE_FILE="$PACKAGE_DIR/yd-agent.$PACKAGE"
-NAME_PATTERN="*yd-agent_*"
+QUERY="repository=$YD_AGENT_REPO_NAME&group=/agent/$PACKAGE/$ARCH"
+# -S shows errors; retries cover the network still coming up at boot
+YD_CURL=(curl --fail -LsS --retry 5 --retry-connrefused)
 
-# Nexus sorts raw assets lexicographically, which ranks (e.g.) 17.2.9 above
-# 17.2.16 and 17.4.1 above 17.10.0, so resolve the highest version here rather
-# than relying on the repository to return it first
+# Nexus sorts versions as text (17.2.9 > 17.2.16), so page through every asset
+# and pick the highest. 'set -e' is off in $(...), so check each request
 yd_latest_version () {
-  local search_url="${YD_AGENT_REPO_URL%/download}"
-  local query="repository=$YD_AGENT_REPO_NAME&group=/agent/$PACKAGE/$ARCH"
-  query="$query&name=$NAME_PATTERN"
   local token="" page versions=""
   while true; do
-    page=$(curl --fail -Ls \
-           "$search_url?$query${token:+&continuationToken=$token}")
-    versions="$versions$(printf '%s' "$page" \
-      | safe_grep -o "yd-agent_[0-9][0-9.]*_$ARCH\.$PACKAGE" \
-      | sed -e "s/^yd-agent_//" -e "s/_$ARCH\.$PACKAGE\$//")
-"
+    page=$("${YD_CURL[@]}" "${YD_AGENT_REPO_URL%/download}?$QUERY\
+&name=*yd-agent_*${token:+&continuationToken=$token}") ||
+      { yd_log "Agent version search request failed" >&2; return 1; }
+    versions+=$(printf '%s' "$page" |
+      safe_grep -o "yd-agent_[0-9][0-9.]*_$ARCH\.$PACKAGE")$'\n'
     token=$(printf '%s' "$page" | sed -n \
       's/.*"continuationToken"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
-    if [[ -z "$token" ]]; then
-      break
-    fi
+    [[ -n $token ]] || break
   done
-  printf '%s' "$versions" | safe_grep -v '^$' | sort -Vu | tail -n 1
+  printf '%s' "$versions" | sed -e 's/^yd-agent_//' -e "s/_$ARCH\.$PACKAGE\$//" |
+    safe_grep -v '^$' | sort -Vu | tail -n 1
 }
 
 yd_log "Resolving the latest Agent version"
-AGENT_VERSION="$(yd_latest_version)"
-if [[ -z "$AGENT_VERSION" ]]; then
-  yd_log "Could not determine the latest Agent version ... aborting"
-  exit 1
-fi
-yd_log "Using Agent version = $AGENT_VERSION"
-
+AGENT_VERSION=$(yd_latest_version) && [[ -n $AGENT_VERSION ]] ||
+  yd_die "Could not determine the latest Agent version"
 PACKAGE_NAME="yd-agent_${AGENT_VERSION}_$ARCH.$PACKAGE"
-yd_log "Starting Agent package download ($PACKAGE_NAME)"
-curl --fail -Ls "$YD_AGENT_REPO_URL?repository=$YD_AGENT_REPO_NAME\
-&group=/agent/$PACKAGE/$ARCH&name=*$PACKAGE_NAME" \
--o "$PACKAGE_FILE"
+yd_log "Downloading Agent package $PACKAGE_NAME"
+"${YD_CURL[@]}" -o "$PACKAGE_FILE" "$YD_AGENT_REPO_URL?$QUERY&name=*$PACKAGE_NAME" ||
+  yd_die "Agent package download failed"
 
 yd_log "Installing Agent package"
 if [[ $PACKAGE == "deb" ]]; then
   export DEBIAN_FRONTEND=noninteractive
   yd_run apt-get install -y -o DPkg::Lock::Timeout=-1 "$PACKAGE_FILE"
-elif [[ $PACKAGE == "rpm" ]]; then
-  # --replacepkgs: 'rpm -U' alone refuses a package that is already installed
-  # at the same version, which is the commonest re-run of all now that the
-  # script resolves the latest version itself
+else
+  # Plain 'rpm -U' fails when the same version is already installed
   yd_run rpm -U --replacepkgs "$PACKAGE_FILE"
 fi
-
-yd_log "Agent package installation complete ... removing package"
 rm -rf "$PACKAGE_DIR"
-
-################################################################################
+yd_log "Agent package installation complete"
 
 YD_AGENT_CONFIG="$YD_AGENT_HOME/application.yaml"
-
-if [[ -f "$YD_AGENT_CONFIG" ]]
-then
+if [[ -f $YD_AGENT_CONFIG ]]; then
   YD_CONFIG_BACKUP="$YD_AGENT_CONFIG.backup.$(date -u "+%Y-%m-%d_%H%M%S_UTC")"
   yd_log "Saving existing Agent configuration as $YD_CONFIG_BACKUP"
   cp "$YD_AGENT_CONFIG" "$YD_CONFIG_BACKUP"
   chown yd-agent:yd-agent "$YD_CONFIG_BACKUP"
 fi
 
-yd_log "Writing new Agent configuration $YD_AGENT_CONFIG with 'bash' task type and default metrics script"
+yd_log "Writing new Agent configuration $YD_AGENT_CONFIG"
 cat > $YD_AGENT_CONFIG << EOM
 yda.taskTypes:
   - name: "bash"
@@ -184,10 +129,8 @@ EOM
 if [[ $YD_CONFIGURED_WP == "TRUE" ]]; then
   yd_log "Adding Configured Worker Pool properties"
   YD_INSTANCE_ID="${YD_INSTANCE_ID:-$(hostname)}"
-  if [[ $YD_INSTANCE_ID == "" ]]; then
-    YD_INSTANCE_ID="ID-$RANDOM-$RANDOM-$RANDOM"
-  fi
-  cat >> $YD_AGENT_HOME/application.yaml << EOM
+  [[ -n $YD_INSTANCE_ID ]] || YD_INSTANCE_ID="ID-$RANDOM-$RANDOM-$RANDOM"
+  cat >> "$YD_AGENT_CONFIG" << EOM
 yda:
   token: "$YD_TOKEN"
   instanceId: "$YD_INSTANCE_ID"
@@ -210,16 +153,6 @@ logging.pattern.console: "%d{yyyy-MM-dd HH:mm:ss.SSS} Worker[%10.10thread]\
 EOM
 fi
 
-yd_log "Agent configuration file created"
-
-################################################################################
-
 yd_log "(Re-)starting Agent service (yd-agent)"
 yd_run systemctl restart --no-block yd-agent.service
-yd_log "Agent service restart requested"
-
-################################################################################
-
 yd_log "YellowDog Agent installation complete"
-
-################################################################################
