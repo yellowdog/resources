@@ -147,12 +147,17 @@ The following simple wrapper script is sometimes useful as an alternative to the
 set -eu
 
 cd /root
+
+# Download to a unique filename, to avoid collisions with any existing file
+INSTALLER=$(mktemp /root/yd-agent-installer-XXXXXXXX.sh)
+trap 'rm -f "$INSTALLER"' EXIT
+
 echo "Downloading the Agent installer script"
-curl -fLsS -o yd-agent-installer.sh \
+curl -fLsS -o "$INSTALLER" \
   https://raw.githubusercontent.com/yellowdog/resources/refs/heads/main/agent-install/linux/yd-agent-installer.sh
 
-# Install/update the Agent; this also (re-)starts the Agent service
-bash yd-agent-installer.sh
+# Install/update the Agent and restart the Agent service
+bash "$INSTALLER"
 ```
 
 When using dynamic Agent installation, bear in mind that **every** provisioned instance will incur the costs of downloading the YellowDog installation package (about 60MB). We therefore recommend against using this approach when provisioning instances at scale: use a custom image instead, with the Agent pre-installed.
