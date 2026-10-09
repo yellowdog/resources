@@ -26,13 +26,13 @@ The Agent's installation directory is always `C:\Program Files\YellowDog\Agent`:
 
 ## Script Settings
 
-The following variables control the script. Each can be set as an environment variable before the script runs (e.g., `$env:YD_CONFIGURED_WP = "TRUE"`), or edited in the script itself.
+The following variables control the script. Each can be set as an environment variable before the script runs (e.g., `$env:YD_AGENT_REPO_NAME = "raw-public"`), or edited in the script itself.
 
 | Variable                      | Description                                                                                                                                         |
 |-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
 | `YD_AGENT_REPO_URL`           | The Nexus download URL for Agent packages. It must end in `/download`. By default, `https://nexus.yellowdog.tech/service/rest/v1/search/assets/download`. |
 | `YD_AGENT_REPO_NAME`          | The Nexus repository name. By default, `raw-public`.                                                                                                |
-| `YD_CONFIGURED_WP`            | `TRUE` to install for a Configured Worker Pool (see [below](#configured-worker-pool-installation)), `FALSE` otherwise. Case is ignored, and any other value stops the script. By default, `FALSE`. |
+| `YD_TOKEN`                    | Setting this installs for a Configured Worker Pool (see [below](#configured-worker-pool-installation)). Unset by default, which installs for a Provisioned Worker Pool. |
 | `YD_AGENT_METADATA_PROVIDERS` | The cloud instance metadata provider(s) the Agent should use: `AWS`, `AWS_V2`, `AZURE`, `GOOGLE`, `OCI` or `NONE`. It is passed to the MSI, which records it as a system environment variable read by the Agent. By default, `NONE` for a Configured Worker Pool and unset otherwise. |
 
 ## YellowDog Task Types
@@ -87,10 +87,9 @@ Every instance provisioned this way downloads the Agent MSI (about 100 MB). We t
 
 The script can also install and configure the Agent on Windows systems that will be included in **Configured Worker Pools**, replacing the manual steps in the [Configured Worker Pool guide](README-CONFIGURED.md).
 
-To use this feature, set `YD_CONFIGURED_WP` to `"TRUE"` and supply the Worker Pool's token in `YD_TOKEN`, then run the script as Administrator:
+To use this feature, supply the Worker Pool's token in `YD_TOKEN`, which is what selects a Configured Worker Pool install, then run the script as Administrator:
 
 ```powershell
-$env:YD_CONFIGURED_WP = "TRUE"
 $env:YD_TOKEN = "<the Worker Pool token>"
 powershell -ExecutionPolicy Bypass -File yd-agent-installer.ps1
 ```

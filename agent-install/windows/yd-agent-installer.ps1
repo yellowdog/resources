@@ -12,8 +12,8 @@ function yd_env ($Name, $Default) {
 $YD_AGENT_REPO_URL = yd_env YD_AGENT_REPO_URL `
   "https://nexus.yellowdog.tech/service/rest/v1/search/assets/download"
 $YD_AGENT_REPO_NAME = yd_env YD_AGENT_REPO_NAME "raw-public"
-# "TRUE" for a Configured Worker Pool, which also needs YD_TOKEN (see README)
-$YD_CONFIGURED_WP = yd_env YD_CONFIGURED_WP "FALSE"
+# Setting YD_TOKEN selects a Configured Worker Pool install (see README)
+$YD_TOKEN = yd_env YD_TOKEN ""
 # Fixed by the Agent package, so not overridable
 $YD_AGENT_HOME = "$env:ProgramFiles\YellowDog\Agent"
 
@@ -26,19 +26,10 @@ $principal = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIde
 if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
   yd_die "Please run as Administrator"
 }
-switch ($YD_CONFIGURED_WP) {  # case-insensitive
-  "TRUE" { $YD_CONFIGURED_WP = "TRUE" }
-  "FALSE" { $YD_CONFIGURED_WP = "FALSE" }
-  default { yd_die "YD_CONFIGURED_WP must be TRUE or FALSE, not '$YD_CONFIGURED_WP'" }
-}
-# Validate before changing anything
-if ($YD_CONFIGURED_WP -eq "TRUE" -and -not $env:YD_TOKEN) {
-  yd_die "YD_TOKEN must be set for a Configured Worker Pool install"
-}
 # Agent-only environment variable, set by the MSI; there is no cloud metadata
 # for a Configured Worker Pool node
 $YD_AGENT_METADATA_PROVIDERS = yd_env YD_AGENT_METADATA_PROVIDERS `
-  $(if ($YD_CONFIGURED_WP -eq "TRUE") { "NONE" } else { "" })
+  $(if ($YD_TOKEN) { "NONE" } else { "" })
 # A 32-bit PowerShell reports x86 here, and the real architecture in PROCESSOR_ARCHITEW6432
 $arch = yd_env PROCESSOR_ARCHITEW6432 $env:PROCESSOR_ARCHITECTURE
 if ($arch -ne "AMD64") { yd_die "Unsupported architecture '$arch'" }
@@ -158,7 +149,7 @@ yda.data-client.rclone-binary-path: "${YD_AGENT_HOME}/bin/rclone.exe"
 
 '@
 
-if ($YD_CONFIGURED_WP -eq "TRUE") {
+if ($YD_TOKEN) {
   yd_log "Adding Configured Worker Pool properties"
   $hostname = [Net.Dns]::GetHostName()
   $computer = Get-CimInstance Win32_ComputerSystem
@@ -167,7 +158,7 @@ if ($YD_CONFIGURED_WP -eq "TRUE") {
     [math]::Floor(0.5 + $computer.TotalPhysicalMemory * 2 / 1GB) / 2)
   $config += @"
 yda:
-  token: "$env:YD_TOKEN"
+  token: "$YD_TOKEN"
   instanceId: "$(yd_env YD_INSTANCE_ID $hostname)"
   provider: "ON_PREMISE"
   hostname: "$(yd_env YD_HOSTNAME $hostname)"
