@@ -65,7 +65,7 @@ The following variables control the script. Each can be exported in the environm
 |----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
 | `YD_AGENT_REPO_URL`  | The Nexus download URL for Agent packages. It must end in `/download`. By default, `https://nexus.yellowdog.tech/service/rest/v1/search/assets/download`. |
 | `YD_AGENT_REPO_NAME` | The Nexus repository name. By default, `raw-public`.                                                                                                |
-| `YD_CONFIGURED_WP`   | `TRUE` to install for a Configured Worker Pool (see [below](#configured-worker-pool-installation)), `FALSE` otherwise. Case is ignored, and any other value stops the script. By default, `FALSE`. |
+| `YD_TOKEN`           | Setting this installs for a Configured Worker Pool (see [below](#configured-worker-pool-installation)). Unset by default, which installs for a Provisioned Worker Pool. |
 
 ## YellowDog Task Types
 
@@ -202,10 +202,7 @@ The installer script can also be used to install and configure the YellowDog Age
 
 Configured Worker Pools are on-premise systems, or systems that were otherwise not provisioned via the YellowDog Scheduler, e.g., instances/hosts that were provisioned directly using on-premise provisioners or via a cloud provider console. Adding the YellowDog Agent to these systems allows them to participate in YellowDog Task scheduling.
 
-To use this feature:
-
-1. Set the variable `YD_CONFIGURED_WP` to `"TRUE"`. This will activate the population of additional properties in the Agent's `application.yaml` configuration file (since these will not be set automatically as they are in the case of instances in Provisioned Worker Pools).
-2. Supply a value for `YD_TOKEN`, matching the token of the YellowDog Configured Worker Pool to which this host will register. 
+To use this feature, supply a value for `YD_TOKEN`, matching the token of the YellowDog Configured Worker Pool to which this host will register. Setting `YD_TOKEN` is what selects a Configured Worker Pool install: it activates the population of additional properties in the Agent's `application.yaml` configuration file (since these will not be set automatically as they are in the case of instances in Provisioned Worker Pools).
 
 The variables can be set directly in the script file itself or exported in the environment in which the installer script will run to override the defaults.
 

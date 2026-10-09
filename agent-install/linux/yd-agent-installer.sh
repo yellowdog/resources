@@ -7,8 +7,8 @@
 YD_AGENT_REPO_URL="${YD_AGENT_REPO_URL:-\
 https://nexus.yellowdog.tech/service/rest/v1/search/assets/download}"
 YD_AGENT_REPO_NAME="${YD_AGENT_REPO_NAME:-raw-public}"
-# "TRUE" for a Configured Worker Pool, which also needs YD_TOKEN (see README)
-YD_CONFIGURED_WP="${YD_CONFIGURED_WP:-FALSE}"
+# Setting YD_TOKEN selects a Configured Worker Pool install (see README)
+YD_TOKEN="${YD_TOKEN:-}"
 # Fixed by the Agent package, so not overridable
 YD_AGENT_HOME="/opt/yellowdog/agent"
 
@@ -28,14 +28,6 @@ yd_run () {
 
 yd_log "Starting YellowDog Agent Setup"
 [[ $EUID -eq 0 ]] || yd_die "Please run as root"
-case "$YD_CONFIGURED_WP" in
-  [Tt][Rr][Uu][Ee]) YD_CONFIGURED_WP="TRUE" ;;
-  [Ff][Aa][Ll][Ss][Ee]) YD_CONFIGURED_WP="FALSE" ;;
-  *) yd_die "YD_CONFIGURED_WP must be TRUE or FALSE, not '$YD_CONFIGURED_WP'" ;;
-esac
-# Validate before changing anything
-[[ $YD_CONFIGURED_WP == "FALSE" || -n "${YD_TOKEN:-}" ]] ||
-  yd_die "YD_TOKEN must be set for a Configured Worker Pool install"
 
 yd_os_release () {
   safe_grep "^$1=" /etc/os-release | sed -e "s/^$1=//" -e 's/"//g'
@@ -126,7 +118,7 @@ yda.metrics.script-path: "/opt/yellowdog/agent/bin/metrics.sh"
 yda.data-client.rclone-binary-path: "/opt/yellowdog/agent/bin/rclone"
 EOM
 
-if [[ $YD_CONFIGURED_WP == "TRUE" ]]; then
+if [[ -n $YD_TOKEN ]]; then
   yd_log "Adding Configured Worker Pool properties"
   YD_INSTANCE_ID="${YD_INSTANCE_ID:-$(hostname)}"
   [[ -n $YD_INSTANCE_ID ]] || YD_INSTANCE_ID="ID-$RANDOM-$RANDOM-$RANDOM"
