@@ -128,7 +128,7 @@ yda:
   instanceId: "$YD_INSTANCE_ID"
   provider: "ON_PREMISE"
   hostname: "${YD_HOSTNAME:-$(hostname)}"
-  services-schema.default-url: "${YD_URL:-https://portal.yellowdog.co/api}"
+  services-schema.default-url: "${YD_URL:-https://api.yellowdog.ai}"
   region: "${YD_REGION:-}"
   instanceType: "${YD_INSTANCE_TYPE:-}"
   sourceName: "${YD_SOURCE_NAME:-}"

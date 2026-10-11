@@ -80,7 +80,7 @@ yda:
   token: "<the Worker Pool token supplied by the Portal>"
 
   # The target URL. This value should remain the same.
-  services-schema.default-url: "https://portal.yellowdog.co/api/"
+  services-schema.default-url: "https://api.yellowdog.ai"
 ```
 
 Adjust the contents of the `application.yaml` file as required -- e.g., to add your own Task Types. For full details of the available options please see the [YellowDog Documentation](https://docs.yellowdog.co/#/the-platform/using-variables-in-the-configuration-file).
