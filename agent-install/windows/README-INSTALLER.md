@@ -1,10 +1,8 @@
 # YellowDog Agent Installer Script for Windows
 
-> **Status:** the script's installation, re-runs and generated configuration are tested automatically on Windows Server 2022 and 2025. Registration of the installed Agent with the YellowDog Platform has not yet been tested end-to-end.
-
 ## Overview
 
-The [yd-agent-installer.ps1](yd-agent-installer.ps1) script installs or upgrades the YellowDog Agent on Windows, writes its configuration file `application.yaml` and (re-)starts the `yd-agent` service. It is the Windows counterpart of the [Linux installer script](../linux/README.md) and accepts the same settings. It automates the step-by-step guides for [custom images](README.md) and [Configured Worker Pools](README-CONFIGURED.md), each of which compares its manual steps with the script.
+The [yd-agent-installer.ps1](yd-agent-installer.ps1) script installs or upgrades the YellowDog Agent on Windows, writes its configuration file `application.yaml` and (re-)starts the `yd-agent` service. It is the Windows counterpart of the [Linux installer script](../linux/README.md) and accepts the same settings. It automates the step-by-step guides for [custom images](README-MANUAL.md) and [Configured Worker Pools](README-CONFIGURED-MANUAL.md), each of which compares its manual steps with the script.
 
 It requires Windows PowerShell 5.1 (or PowerShell 7) on 64-bit (`x64`) Windows: no Agent installer is published for ARM64 Windows. It must be run as Administrator.
 
@@ -25,7 +23,7 @@ The script:
 4. Saves any existing `application.yaml` as `application.yaml.backup.<timestamp>`, then writes a new one to `C:\Program Files\YellowDog\Agent\config\application.yaml`. Any hand edits to the file are replaced, but they are kept in the backup.
 5. Sets the `yd-agent` service's startup type to `Automatic` and (re-)starts it.
 
-The script can be re-run at any time, e.g., to upgrade the Agent in place. Note that an MSI upgrade on its own replaces `application.yaml` (see [Upgrading the Agent](README.md#upgrading-the-agent)); the script's backup-and-rewrite step makes that harmless.
+The script can be re-run at any time, e.g., to upgrade the Agent in place. Note that an MSI upgrade on its own replaces `application.yaml` (see [Upgrading the Agent](README-MANUAL.md#upgrading-the-agent)); the script's backup-and-rewrite step makes that harmless.
 
 The verbose MSI log is written to `C:\ProgramData\YellowDog\yd-agent-install.log`. The script's own progress messages go to its output, prefixed with `*** YD`; if the script fails during the MSI installation it prints the relevant part of the MSI log and stops.
 
@@ -42,7 +40,7 @@ The following variables control the script. Each can be set as an environment va
 
 ## YellowDog Task Types
 
-By default, two general-purpose Task Types are defined, `cmd` and `powershell`, each using the default [abort handler](README.md#abort-handlers) supplied with the Agent:
+By default, two general-purpose Task Types are defined, `cmd` and `powershell`, each using the default [abort handler](README-MANUAL.md#abort-handlers) supplied with the Agent:
 
 ```yaml
 yda.taskTypes:
@@ -60,7 +58,7 @@ These are flexible but liberal: they can execute arbitrary commands on the insta
 
 ### Custom Image Creation
 
-Run the script as Administrator on an instance built from a base image of your choice, then capture a custom image from it, as described in steps (3) to (5) of the [custom image guide](README.md). This replaces steps (1) and (2) of that guide:
+Run the script as Administrator on an instance built from a base image of your choice, then capture a custom image from it, as described in steps (3) to (5) of the [custom image guide](README-MANUAL.md). This replaces steps (1) and (2) of that guide:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File yd-agent-installer.ps1
@@ -70,13 +68,13 @@ To optimise Agent startup, set `YD_AGENT_METADATA_PROVIDERS` (e.g., `$env:YD_AGE
 
 ### Dynamic Agent Installation
 
-Running the script as **user data**, to install the Agent while an instance boots, is **not currently supported on stock Windows images**. YellowDog delivers user data to Windows instances in the cloud-init multi-part format, which EC2Launch v2 on standard AWS Windows AMIs does not run. Boot-time scripts therefore need an image that includes [CloudBase-Init](README.md#3-optional-download-and-install-cloudbase-init), and an image built for that purpose might as well have the Agent pre-installed, as described above.
+Running the script as **user data**, to install the Agent while an instance boots, is **not currently supported on stock Windows images**. YellowDog delivers user data to Windows instances in the cloud-init multi-part format, which EC2Launch v2 on standard AWS Windows AMIs does not run. Boot-time scripts therefore need an image that includes [CloudBase-Init](README-MANUAL.md#3-optional-download-and-install-cloudbase-init), and an image built for that purpose might as well have the Agent pre-installed, as described above.
 
 Installing at boot would also download the Agent MSI (about 100 MB) on every instance, so a custom image with the Agent pre-installed is the better choice when provisioning at scale in any case.
 
 ### Configured Worker Pool Installation
 
-The script can also install and configure the Agent on Windows systems that will be included in **Configured Worker Pools**, replacing the manual steps in the [Configured Worker Pool guide](README-CONFIGURED.md).
+The script can also install and configure the Agent on Windows systems that will be included in **Configured Worker Pools**, replacing the manual steps in the [Configured Worker Pool guide](README-CONFIGURED-MANUAL.md).
 
 To use this feature, supply the Worker Pool's token in `YD_TOKEN`, which is what selects a Configured Worker Pool install, then run the script as Administrator:
 

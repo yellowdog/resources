@@ -70,7 +70,7 @@ An optional `YD_AGENT_METADATA_PROVIDERS` argument can be supplied to the instal
 msiexec /i yd-agent.msi /passive /l*v yd-agent-install.log YD_AGENT_METADATA_PROVIDERS=AWS
 ```
 
-A value of `NONE` is also accepted, for systems that are not cloud-provisioned -- see the [Configured Worker Pool guide](README-CONFIGURED.md).
+A value of `NONE` is also accepted, for systems that are not cloud-provisioned -- see the [Configured Worker Pool guide](README-CONFIGURED-MANUAL.md).
 
 The installer records the value as a system environment variable, so it can be changed subsequently by editing the environment variable and restarting the Agent service, instead of by reinstalling.
 

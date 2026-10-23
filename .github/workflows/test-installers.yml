@@ -72,7 +72,7 @@ jobs:
       - name: Run the guides' MSI download snippet
         shell: powershell
         run: |
-          $snippets = "README.md", "README-CONFIGURED.md" | ForEach-Object {
+          $snippets = "README-MANUAL.md", "README-CONFIGURED-MANUAL.md" | ForEach-Object {
             $md = Get-Content -Raw "agent-install\windows\$_"
             if ($md -notmatch '(?s)To find and download the newest.*?```powershell\r?\n(.*?)```') { throw "No snippet in $_" }
             $Matches[1]

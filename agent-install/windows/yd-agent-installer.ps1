@@ -1,6 +1,6 @@
 # YellowDog Agent installer for Windows: installs or upgrades the Agent, writes
 # application.yaml and restarts the service. Run as Administrator. Documentation:
-# https://github.com/yellowdog/resources/tree/main/agent-install/windows
+# https://github.com/yellowdog/resources/blob/main/agent-install/windows/README-INSTALLER.md
 
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"

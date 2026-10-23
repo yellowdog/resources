@@ -4,7 +4,7 @@
 
 The YellowDog Scheduler requires instances to run the YellowDog Agent in order to participate in Worker Pools. Please see the links below for help with installing the Agent on Linux and Windows systems.
 
-- [Installing the YellowDog Agent on Linux](agent-install/linux/README.md)
-- [Installing the YellowDog Agent on Cloud-Provisioned Windows Systems](agent-install/windows/README.md)
-- [Installing the YellowDog Agent on On-Premise Windows Systems](agent-install/windows/README-CONFIGURED.md)
-- [Installing the YellowDog Agent on Windows using the installer script](agent-install/windows/README-INSTALLER.md)
+- [Installing the YellowDog Agent on Linux Using the Installer Script](agent-install/linux/README.md)
+- [Installing the YellowDog Agent on Windows Using the Installer Script](agent-install/windows/README-INSTALLER.md)
+- [Manually Installing the YellowDog Agent on Cloud-Provisioned Windows Systems](agent-install/windows/README-MANUAL.md)
+- [Manually Installing the YellowDog Agent on On-Premise Windows Systems](agent-install/windows/README-CONFIGURED-MANUAL.md)
