@@ -8,10 +8,6 @@ function yd_env ($Name, $Default) {
   $v = [Environment]::GetEnvironmentVariable($Name)
   if ([string]::IsNullOrEmpty($v)) { $Default } else { $v }
 }
-# Nexus repository (the URL must end in '/download')
-$YD_AGENT_REPO_URL = yd_env YD_AGENT_REPO_URL `
-  "https://nexus.yellowdog.tech/service/rest/v1/search/assets/download"
-$YD_AGENT_REPO_NAME = yd_env YD_AGENT_REPO_NAME "raw-public"
 # Setting YD_TOKEN selects a Configured Worker Pool install (see README)
 $YD_TOKEN = yd_env YD_TOKEN ""
 # Fixed by the Agent package, so not overridable
@@ -50,13 +46,14 @@ function yd_web ($Uri, $OutFile) {
   }
 }
 
-$QUERY = "repository=$YD_AGENT_REPO_NAME&group=/agent/msi"
+$NEXUS_SEARCH_URL = "https://nexus.yellowdog.tech/service/rest/v1/search/assets"
+$QUERY = "repository=raw-public&group=/agent/msi"
 # Nexus sorts versions as text (17.2.9 > 17.2.16), so page through every asset
 # and pick the highest
 function yd_latest_version {
   $token = $null; $versions = @()
   do {
-    $uri = "$($YD_AGENT_REPO_URL -replace '/download$', '')?$QUERY&name=*yd-agent-*"
+    $uri = "$NEXUS_SEARCH_URL`?$QUERY&name=*yd-agent-*"
     if ($token) { $uri += "&continuationToken=$token" }
     try { $page = yd_web $uri } catch { yd_die "Agent version search request failed: $_" }
     foreach ($item in $page.items) {
@@ -103,7 +100,7 @@ if ((yd_v3 $INSTALLED_VERSION) -eq (yd_v3 $AGENT_VERSION)) {
   $packageName = "yd-agent-$AGENT_VERSION.msi"
   $packageFile = Join-Path $packageDir $packageName
   yd_log "Downloading Agent package $packageName"
-  try { yd_web "$YD_AGENT_REPO_URL`?$QUERY&name=*$packageName" $packageFile | Out-Null }
+  try { yd_web "$NEXUS_SEARCH_URL/download?$QUERY&name=*$packageName" $packageFile | Out-Null }
   catch { yd_die "Agent package download failed: $_" }
 
   yd_log "Installing Agent package"

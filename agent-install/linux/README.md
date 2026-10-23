@@ -63,8 +63,6 @@ The following variables control the script. Each can be exported in the environm
 
 | Variable             | Description                                                                                                                                         |
 |----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
-| `YD_AGENT_REPO_URL`  | The Nexus download URL for Agent packages. It must end in `/download`. By default, `https://nexus.yellowdog.tech/service/rest/v1/search/assets/download`. |
-| `YD_AGENT_REPO_NAME` | The Nexus repository name. By default, `raw-public`.                                                                                                |
 | `YD_TOKEN`           | Setting this installs for a Configured Worker Pool (see [below](#configured-worker-pool-installation)). Unset by default, which installs for a Provisioned Worker Pool. |
 
 ## YellowDog Task Types

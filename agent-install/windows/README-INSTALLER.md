@@ -33,12 +33,10 @@ The Agent's installation directory is always `C:\Program Files\YellowDog\Agent`:
 
 ## Script Settings
 
-The following variables control the script. Each can be set as an environment variable before the script runs (e.g., `$env:YD_AGENT_REPO_NAME = "raw-public"`), or edited in the script itself.
+The following variables control the script. Each can be set as an environment variable before the script runs (e.g., `$env:YD_AGENT_METADATA_PROVIDERS = "AWS"`), or edited in the script itself.
 
 | Variable                      | Description                                                                                                                                         |
 |-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
-| `YD_AGENT_REPO_URL`           | The Nexus download URL for Agent packages. It must end in `/download`. By default, `https://nexus.yellowdog.tech/service/rest/v1/search/assets/download`. |
-| `YD_AGENT_REPO_NAME`          | The Nexus repository name. By default, `raw-public`.                                                                                                |
 | `YD_TOKEN`                    | Setting this installs for a Configured Worker Pool (see [below](#configured-worker-pool-installation)). Unset by default, which installs for a Provisioned Worker Pool. |
 | `YD_AGENT_METADATA_PROVIDERS` | The cloud instance metadata provider(s) the Agent should use: `AWS`, `AWS_V2`, `AZURE`, `GOOGLE`, `OCI` or `NONE`. It is passed to the MSI, which records it as a system environment variable read by the Agent. By default, `NONE` for a Configured Worker Pool and unset otherwise. |
 

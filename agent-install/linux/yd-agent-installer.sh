@@ -3,10 +3,6 @@
 # application.yaml and restarts the service. Run as root. Documentation:
 # https://github.com/yellowdog/resources/tree/main/agent-install/linux
 
-# Nexus repository (the URL must end in '/download')
-YD_AGENT_REPO_URL="${YD_AGENT_REPO_URL:-\
-https://nexus.yellowdog.tech/service/rest/v1/search/assets/download}"
-YD_AGENT_REPO_NAME="${YD_AGENT_REPO_NAME:-raw-public}"
 # Setting YD_TOKEN selects a Configured Worker Pool install (see README)
 YD_TOKEN="${YD_TOKEN:-}"
 # Fixed by the Agent package, so not overridable
@@ -60,7 +56,8 @@ yd_log "Using distro = $DISTRO, arch = $ARCH"
 PACKAGE_DIR="$(mktemp -d)"
 trap 'rm -rf "$PACKAGE_DIR"' EXIT
 PACKAGE_FILE="$PACKAGE_DIR/yd-agent.$PACKAGE"
-QUERY="repository=$YD_AGENT_REPO_NAME&group=/agent/$PACKAGE/$ARCH"
+NEXUS_SEARCH_URL="https://nexus.yellowdog.tech/service/rest/v1/search/assets"
+QUERY="repository=raw-public&group=/agent/$PACKAGE/$ARCH"
 # -S shows errors; retries cover the network still coming up at boot
 YD_CURL=(curl --fail -LsS --retry 5 --retry-connrefused)
 
@@ -69,7 +66,7 @@ YD_CURL=(curl --fail -LsS --retry 5 --retry-connrefused)
 yd_latest_version () {
   local token="" page versions=""
   while true; do
-    page=$("${YD_CURL[@]}" "${YD_AGENT_REPO_URL%/download}?$QUERY\
+    page=$("${YD_CURL[@]}" "$NEXUS_SEARCH_URL?$QUERY\
 &name=*yd-agent_*${token:+&continuationToken=$token}") ||
       { yd_log "Agent version search request failed" >&2; return 1; }
     versions+=$(printf '%s' "$page" |
@@ -88,7 +85,7 @@ AGENT_VERSION=$(yd_latest_version) && [[ -n $AGENT_VERSION ]] ||
   yd_die "Could not determine the latest Agent version"
 PACKAGE_NAME="yd-agent_${AGENT_VERSION}_$ARCH.$PACKAGE"
 yd_log "Downloading Agent package $PACKAGE_NAME"
-"${YD_CURL[@]}" -o "$PACKAGE_FILE" "$YD_AGENT_REPO_URL?$QUERY&name=*$PACKAGE_NAME" ||
+"${YD_CURL[@]}" -o "$PACKAGE_FILE" "$NEXUS_SEARCH_URL/download?$QUERY&name=*$PACKAGE_NAME" ||
   yd_die "Agent package download failed"
 
 yd_log "Installing Agent package"
