@@ -1,0 +1,70 @@
+# Advisory tests of the Agent installers: each run installs the real Agent
+# package from Nexus and checks the result. Nothing here gates a merge.
+name: Test installers
+
+on:
+  push:
+    branches: [next-version]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A newer push supersedes a run still in progress
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Bash syntax
+        run: bash -n agent-install/linux/yd-agent-installer.sh
+      - name: ShellCheck
+        run: shellcheck agent-install/linux/yd-agent-installer.sh .github/tests/linux-test.sh
+      - name: PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
+          $results = "agent-install/windows", ".github/tests" |
+            ForEach-Object { Invoke-ScriptAnalyzer -Path $_ -Recurse -Severity Warning, Error -ExcludeRule PSAvoidUsingWriteHost }
+          $results | Format-Table -AutoSize -Wrap | Out-String -Width 200 | Write-Host
+          # Warnings are shown for information; only errors fail the job
+          if ($results | Where-Object Severity -eq Error) { exit 1 }
+
+  linux:
+    name: linux (${{ matrix.distro.name }}, ${{ matrix.arch }})
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, arm64]
+        distro:
+          - { name: ubuntu-24.04, image: "ubuntu:24.04" }
+          - { name: debian-12, image: "debian:12" }
+          - { name: almalinux-9, image: "almalinux:9" }
+          - { name: rocky-10, image: "rockylinux/rockylinux:10" }
+          - { name: amazonlinux-2023, image: "amazonlinux:2023" }
+          - { name: sles-15.7, image: "registry.suse.com/bci/bci-base:15.7" }
+    steps:
+      - uses: actions/checkout@v5
+      # The container runs as root, which the installer requires
+      - name: Install and check the Agent
+        run: docker run --rm -v "$PWD:/repo:ro" "${{ matrix.distro.image }}" bash /repo/.github/tests/linux-test.sh
+
+  windows:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    steps:
+      # Test the script with LF line endings, as fetched from raw.githubusercontent.com
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v5
+      # Windows PowerShell 5.1, which is what runs user data
+      - name: Install and check the Agent
+        shell: powershell
+        run: .\.github\tests\windows-test.ps1
