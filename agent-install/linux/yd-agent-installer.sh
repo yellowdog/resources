@@ -14,7 +14,7 @@ YD_AGENT_HOME="/opt/yellowdog/agent"
 
 set -euo pipefail
 yd_log () { echo -e "*** YD" "$(date -u "+%Y-%m-%d_%H%M%S_UTC"):" "$@"; }
-yd_die () { yd_log "$@ ... aborting"; exit 1; }
+yd_die () { yd_log "$* ... aborting"; exit 1; }
 safe_grep () { grep "$@" || test $? = 1; }
 
 # Log a command's output, and show its tail on failure (as user data, the
@@ -83,6 +83,7 @@ yd_latest_version () {
 }
 
 yd_log "Resolving the latest Agent version"
+# shellcheck disable=SC2015  # yd_die exits, so this is if-then-else
 AGENT_VERSION=$(yd_latest_version) && [[ -n $AGENT_VERSION ]] ||
   yd_die "Could not determine the latest Agent version"
 PACKAGE_NAME="yd-agent_${AGENT_VERSION}_$ARCH.$PACKAGE"
