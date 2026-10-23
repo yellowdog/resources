@@ -23,7 +23,7 @@ jobs:
       - name: Bash syntax
         run: bash -n agent-install/linux/yd-agent-installer.sh
       - name: ShellCheck
-        run: shellcheck agent-install/linux/yd-agent-installer.sh .github/tests/linux-test.sh
+        run: shellcheck agent-install/linux/yd-agent-installer.sh agent-install/linux/userdata/*.sh .github/tests/*.sh
       - name: PSScriptAnalyzer
         shell: pwsh
         run: |
@@ -50,9 +50,12 @@ jobs:
           - { name: sles-15.7, image: "registry.suse.com/bci/bci-base:15.7" }
     steps:
       - uses: actions/checkout@v5
-      # The container runs as root, which the installer requires
-      - name: Install and check the Agent
-        run: docker run --rm -v "$PWD:/repo:ro" "${{ matrix.distro.image }}" bash /repo/.github/tests/linux-test.sh
+      # The container runs as root, which the installer requires. The userdata
+      # scripts are tested in the same container, after the Agent is installed
+      - name: Install and check the Agent, then the userdata scripts
+        run: >-
+          docker run --rm -v "$PWD:/repo:ro" "${{ matrix.distro.image }}"
+          bash -c 'bash /repo/.github/tests/linux-test.sh && bash /repo/.github/tests/userdata-test.sh'
 
   windows:
     runs-on: ${{ matrix.os }}

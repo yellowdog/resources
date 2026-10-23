@@ -153,7 +153,7 @@ The installer script is idempotent. This is useful if one wants to update the ve
 
 ### Dynamic Agent Installation
 
-The script can also be used to **install the YellowDog components dynamically** on any Linux instance, by supplying it as all or part of the **user data** for the instance. For example, the following could be specified using the Python Examples scripts as follows:
+The script can also be used to **install the YellowDog components dynamically** on any Linux instance, by supplying it as all or part of the **user data** for the instance. For example, using the YellowDog CLI:
 
 ```toml
 [workerPool]
@@ -223,3 +223,71 @@ The following set of variables is available for specifying the properties of an 
 | `YD_URL`                      | The URL of the YellowDog Platform's REST API. By default, `https://api.yellowdog.ai`.                                                                                     |
 
 Note that re-running the script overwrites all files, including `application.yaml`, so any changes made to the Agent's configuration by hand will be lost.
+
+## Additional User Data Scripts
+
+The [userdata](userdata) directory contains optional scripts that add commonly needed capabilities to an instance. Each is run as root **after** the installer script, and works whether it is concatenated with the installer in the same user data, downloaded and run separately, or run by hand.
+
+| Script                                                       | What it does                                                                                                                                                                                                                                                                     |
+|--------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [add-task-type.sh](userdata/add-task-type.sh)                | Adds a Task Type to `application.yaml`, unless one of the same name exists, and restarts the Agent. Set `YD_TASK_TYPE_NAME` and `YD_TASK_TYPE_RUN` (by default, `python` and `python3`).                                                                                       |
+| [install-docker.sh](userdata/install-docker.sh)              | Installs, enables and starts Docker: the distribution's `docker.io` package on Ubuntu and Debian, `docker` on Amazon Linux and SUSE, and `docker-ce` from Docker's own repository on Red Hat-based distributions. On Ubuntu and Debian it also disables `unattended-upgrades` (see below). |
+| [add-docker-task-type.sh](userdata/add-docker-task-type.sh)  | Adds a `docker` Task Type that runs each Task in its own container (see below), adds `yd-agent` to the `docker` group, and restarts the Agent. Run it after `install-docker.sh`.                                                                                              |
+| [add-rclone-s3.sh](userdata/add-rclone-s3.sh)                | Adds an Amazon S3 remote to the rclone configuration used by the Agent's data client (see below).                                                                                                                                                                              |
+
+The scripts are tested automatically, after the installer, on Ubuntu 24.04, Debian 12, AlmaLinux 9, Rocky Linux 10, Amazon Linux 2023 and SLES 15 SP7, on both `amd64` and `arm64`.
+
+### Using the Scripts as User Data
+
+Concatenate the scripts after the installer, keeping `install-docker.sh` before `add-docker-task-type.sh`, e.g., using the YellowDog CLI:
+
+```toml
+[workerPool]
+userDataFiles = ["yd-agent-installer.sh", "install-docker.sh", "add-docker-task-type.sh"]
+```
+
+Settings can be supplied in a short script placed before the one that uses them, e.g., one containing `YD_TASK_TYPE_NAME="my-task-type"` and `YD_TASK_TYPE_RUN="/usr/bin/my-executable"` before `add-task-type.sh`. To add several Task Types, repeat this pair of files.
+
+Cloud providers limit the size of user data (to 16 KB on AWS), and the installer and the two Docker scripts together take most of this. Alternatively, the user data can download and run each script in turn; settings must then be exported:
+
+```shell
+#!/bin/bash
+
+set -euo pipefail
+
+BASE=https://raw.githubusercontent.com/yellowdog/resources/refs/heads/main/agent-install/linux
+SCRIPT=$(mktemp)
+trap 'rm -f "$SCRIPT"' EXIT
+
+for NAME in yd-agent-installer.sh userdata/install-docker.sh userdata/add-docker-task-type.sh
+do
+  curl -fLsS --retry 5 --retry-connrefused -o "$SCRIPT" "$BASE/$NAME"
+  bash "$SCRIPT"
+done
+```
+
+Re-running the installer rewrites `application.yaml`, removing any Task Types added by `add-task-type.sh` or `add-docker-task-type.sh`, so re-run those scripts after it.
+
+### Why `install-docker.sh` Disables `unattended-upgrades`
+
+On Ubuntu and Debian, `unattended-upgrades` installs updates in the background shortly after boot, using CPU time and network bandwidth on every instance that starts, and holding the package manager's lock while it does so. The script disables it permanently. Instances therefore do not apply security updates automatically: keep the image itself up to date instead, or re-enable the service with `systemctl enable --now unattended-upgrades` if automatic updates are required.
+
+### The `docker` Task Type
+
+A Task of type `docker` runs `docker run <the Task's arguments>`, so its arguments are any `docker run` options followed by the image name and, optionally, the command to run in the container, e.g. `ubuntu:24.04 echo "Hello"`. The Task's working directory is mounted in the container at `/yd_working`, which is also passed to the container as the environment variable `YD_WORKING`.
+
+If the Task is aborted, the container is stopped, then killed if it has not stopped within 10 seconds. The following optional Task environment variables control the container:
+
+| Variable                                                | Description                                                                                                       |
+|---------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
+| `DOCKER_USERNAME`, `DOCKER_PASSWORD`, `DOCKER_REGISTRY` | Credentials used to log in to a registry before the container runs, and to log out afterwards. By default, Docker Hub. |
+| `DOCKER_IMAGE`                                          | An image to `docker pull` first, updating any copy already on the instance.                                       |
+| `YD_STOP_SIGNAL`                                        | The signal sent to the container to stop it. By default, `SIGTERM`.                                               |
+| `YD_STOP_TIMEOUT`                                       | The number of seconds to wait for the container to stop before it is killed. By default, `10`.                   |
+| `YD_WORKING`                                            | The directory in the container at which the Task's working directory is mounted. By default, `/yd_working`.      |
+
+### The rclone S3 Remote
+
+`add-rclone-s3.sh` adds a remote named by `YD_RCLONE_REMOTE` (by default, `s3`) to `/opt/yellowdog/agent/.config/rclone/rclone.conf`, the configuration file read by the Agent's data client, keeping any other remotes in the file. Set `YD_S3_REGION` to the region of the buckets; otherwise, rclone assumes `us-east-1`.
+
+By default, the remote authenticates using the instance's IAM role, which is the recommended approach. Alternatively, set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` to use an access key, which is then stored in the configuration file. Note that user data can be read by any process on the instance that can reach the cloud provider's metadata service, so supplying keys this way exposes them more widely than a role does.

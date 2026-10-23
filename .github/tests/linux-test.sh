@@ -37,10 +37,13 @@ prepare () {
     fi
   fi
   # No systemd in a container: record the calls instead. rpm scriptlets run
-  # with PATH=/sbin:/bin:/usr/sbin:/usr/bin, so replace /usr/bin/systemctl
+  # with PATH=/sbin:/bin:/usr/sbin:/usr/bin, so replace /usr/bin/systemctl.
+  # Installing Docker can install systemd over it, so the scripts' own calls
+  # use the copy in /usr/local/bin, which comes first in PATH
   [[ -e /usr/bin/systemctl ]] && mv /usr/bin/systemctl /usr/bin/systemctl.real
   printf '#!/bin/sh\necho "$*" >> %s\n' "$SYSTEMCTL_LOG" > /usr/bin/systemctl
   chmod 755 /usr/bin/systemctl
+  cp -p /usr/bin/systemctl /usr/local/bin/systemctl
 }
 
 package_installed () {
