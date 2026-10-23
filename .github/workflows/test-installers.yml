@@ -68,3 +68,15 @@ jobs:
       - name: Install and check the Agent
         shell: powershell
         run: .\.github\tests\windows-test.ps1
+      # The manual guides download the newest MSI with this snippet instead of a pinned version
+      - name: Run the guides' MSI download snippet
+        shell: powershell
+        run: |
+          $snippets = "README.md", "README-CONFIGURED.md" | ForEach-Object {
+            $md = Get-Content -Raw "agent-install\windows\$_"
+            if ($md -notmatch '(?s)To find and download the newest.*?```powershell\r?\n(.*?)```') { throw "No snippet in $_" }
+            $Matches[1]
+          }
+          if ($snippets[0] -cne $snippets[1]) { throw "The two guides' snippets differ" }
+          Invoke-Expression $snippets[0]
+          if ((Get-Item yd-agent.msi).Length -lt 10MB) { throw "yd-agent.msi is missing or too small" }

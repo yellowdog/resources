@@ -11,23 +11,57 @@ There are four steps:
 
 The installation steps have been tested on Windows Server 2022.
 
-## (1) Download and Install the YellowDog Agent
+## Installing by Script or by Hand
 
-1. The current version of the YellowDog Agent installer can be downloaded from YellowDog's Nexus software repository at: https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-20.2.2.msi. All available versions can be browsed at https://nexus.yellowdog.tech/service/rest/repository/browse/raw-public/agent/msi/.
-
-The installer includes a self-contained, minimal version of Java, required for Agent execution.
-
-To download this version using the command line:
+Steps (1) to (3) can be carried out in one go by the [Windows installer script](README-INSTALLER.md), which needs only the Worker Pool's token: the **Agent Configuration: View** button described in step (2) shows it as `token:`. Run as Administrator:
 
 ```powershell
 $ProgressPreference = "SilentlyContinue"
-Invoke-WebRequest -Uri 'https://nexus.yellowdog.tech/repository/raw-public/agent/msi/yd-agent-20.2.2.msi' -OutFile yd-agent-20.2.2.msi
+Invoke-WebRequest -UseBasicParsing -Uri https://raw.githubusercontent.com/yellowdog/resources/refs/heads/main/agent-install/windows/yd-agent-installer.ps1 -OutFile yd-agent-installer.ps1
+$env:YD_TOKEN = "<the Worker Pool token>"
+powershell -ExecutionPolicy Bypass -File yd-agent-installer.ps1
 ```
+
+Then continue with step (4). The two approaches compare as follows:
+
+| Step                            | By hand (this guide)                                                                             | With the installer script                                                                                                                    |
+|---------------------------------|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| (1) Install the Agent           | Download the newest MSI and run `msiexec` with `SERVICE_STARTUP=Manual YD_AGENT_METADATA_PROVIDERS=NONE` | The same, unattended, with `YD_AGENT_METADATA_PROVIDERS=NONE`; skipped if the newest version is already installed                            |
+| (2) Populate `application.yaml` | Paste the configuration from the Portal, then set the node's identity and resources              | Generated from the token: `instanceId` and `hostname` set to the machine's hostname, vCPUs and RAM detected, `cmd` and `powershell` Task Types; any existing file is kept as a timestamped backup |
+| (3) Start the Agent service     | Set the startup type to `Automatic` and start the service                                        | Done by the script                                                                                                                           |
+| (4) Check the Agent             | The same either way                                                                              | The same either way                                                                                                                          |
+
+Each value the script writes can be overridden with an environment variable -- see [the script's settings](README-INSTALLER.md#configured-worker-pool-installation). Follow the manual steps below to see or control each step, or to use the Portal's configuration as supplied.
+
+## (1) Download and Install the YellowDog Agent
+
+1. YellowDog Agent installers are published in YellowDog's Nexus software repository, where all available versions can be browsed at https://nexus.yellowdog.tech/service/rest/repository/browse/raw-public/agent/msi/.
+
+The installer includes a self-contained, minimal version of Java, required for Agent execution.
+
+To find and download the newest version as `yd-agent.msi`, run the following in PowerShell:
+
+```powershell
+$ProgressPreference = "SilentlyContinue"
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+$uri = "https://nexus.yellowdog.tech/service/rest/v1/search/assets?repository=raw-public&group=/agent/msi"
+$msis = @(); $token = $null
+do {
+  $page = Invoke-RestMethod -UseBasicParsing ($uri + $(if ($token) { "&continuationToken=$token" }))
+  $msis += $page.items | Where-Object path -match 'yd-agent-[\d.]+\.msi$'
+  $token = $page.continuationToken
+} while ($token)
+$latest = $msis | Sort-Object { [version]($_.path -replace '.*yd-agent-([\d.]+)\.msi$', '$1') } | Select-Object -Last 1
+Write-Host "Downloading $($latest.path)"
+Invoke-WebRequest -UseBasicParsing -Uri $latest.downloadUrl -OutFile yd-agent.msi
+```
+
+The versions are compared numerically, because Nexus sorts them as text (placing, e.g., `20.2.9` above `20.2.10`). To install a specific version instead, download it from the page above and use its file name in place of `yd-agent.msi` below.
 
 2. In the directory to which the file has been downloaded, run the installer from the command line as Administrator:
 
 ```bat
-msiexec /i yd-agent-20.2.2.msi /passive /l*v yd-agent-install.log SERVICE_STARTUP=Manual YD_AGENT_METADATA_PROVIDERS=NONE
+msiexec /i yd-agent.msi /passive /l*v yd-agent-install.log SERVICE_STARTUP=Manual YD_AGENT_METADATA_PROVIDERS=NONE
 ```
 Installation will show a progress bar but will not require user interaction.
 
@@ -184,3 +218,5 @@ Installing a newer version of the Agent is a major upgrade: the installed versio
 Take a copy of `application.yaml` before upgrading. Without it, the Worker Pool token and the rest of the configuration populated in step (2) are lost and the node will not rejoin its Worker Pool -- although the configuration can be obtained from the Portal again, as described in step (2).
 
 Installing the upgrade using the command shown in step (1) leaves the service stopped, with its startup type set to `Manual`, so steps (2) to (4) can simply be repeated afterwards.
+
+If the node was set up with the [installer script](README-INSTALLER.md), re-running it with the same `YD_TOKEN` upgrades the Agent, rewrites `application.yaml` (keeping the previous file as a backup) and restarts the service.

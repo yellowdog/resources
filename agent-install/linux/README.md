@@ -222,6 +222,6 @@ The following set of variables is available for specifying the properties of an 
 | `YD_PRIVATE_IP`               | The instance's private IP address. Empty by default.                                                                                                                      |
 | `YD_WORKER_TARGET_COUNT`      | The number of workers to create per Node or per vCPU (as determined by `YD_WORKER_TARGET_TYPE`). By default, `1`.                                                         |
 | `YD_WORKER_TARGET_TYPE`       | Must be set to `"PER_NODE"` or `"PER_VCPU"`. By default, `"PER_NODE"`.                                                                                                    |
-| `YD_URL`                      | The URL of the YellowDog Platform's REST API. By default, `https://portal.yellowdog.co/api`.                                                                              |
+| `YD_URL`                      | The URL of the YellowDog Platform's REST API. By default, `https://api.yellowdog.ai`.                                                                                     |
 
 Note that re-running the script overwrites all files, including `application.yaml`, so any changes made to the Agent's configuration by hand will be lost.

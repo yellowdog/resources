@@ -1,12 +1,19 @@
 # YellowDog Agent Installer Script for Windows
 
-> **Status: draft.** This script has been checked for syntax and its version selection and configuration output exercised with PowerShell 7 on Linux, but it has **not yet been run end-to-end on Windows**. Until it has, please follow the step-by-step guides for [Provisioned](README.md) or [Configured](README-CONFIGURED.md) Worker Pools.
+> **Status:** the script's installation, re-runs and generated configuration are tested automatically on Windows Server 2022 and 2025. Registration of the installed Agent with the YellowDog Platform has not yet been tested end-to-end.
 
 ## Overview
 
-The [yd-agent-installer.ps1](yd-agent-installer.ps1) script installs or upgrades the YellowDog Agent on Windows, writes its configuration file `application.yaml` and (re-)starts the `yd-agent` service. It is the Windows counterpart of the [Linux installer script](../linux/README.md) and accepts the same settings.
+The [yd-agent-installer.ps1](yd-agent-installer.ps1) script installs or upgrades the YellowDog Agent on Windows, writes its configuration file `application.yaml` and (re-)starts the `yd-agent` service. It is the Windows counterpart of the [Linux installer script](../linux/README.md) and accepts the same settings. It automates the step-by-step guides for [custom images](README.md) and [Configured Worker Pools](README-CONFIGURED.md), each of which compares its manual steps with the script.
 
 It requires Windows PowerShell 5.1 (or PowerShell 7) on 64-bit (`x64`) Windows: no Agent installer is published for ARM64 Windows. It must be run as Administrator.
+
+To download the script:
+
+```powershell
+$ProgressPreference = "SilentlyContinue"
+Invoke-WebRequest -UseBasicParsing -Uri https://raw.githubusercontent.com/yellowdog/resources/refs/heads/main/agent-install/windows/yd-agent-installer.ps1 -OutFile yd-agent-installer.ps1
+```
 
 ## How the Script Works
 
@@ -61,27 +68,13 @@ Run the script as Administrator on an instance built from a base image of your c
 powershell -ExecutionPolicy Bypass -File yd-agent-installer.ps1
 ```
 
-On the instance used to build the image the service will start but then stop, because there is no instance metadata for it to register with; this is expected. Instances provisioned from the image start the Agent at boot.
+To optimise Agent startup, set `YD_AGENT_METADATA_PROVIDERS` (e.g., `$env:YD_AGENT_METADATA_PROVIDERS = "AWS"`) before running the script. The state of the service on the instance used to build the image does not matter: its startup type is `Automatic`, so instances provisioned from the image start the Agent at boot.
 
 ### Dynamic Agent Installation
 
-The script can install the Agent while an instance boots, by supplying it as **user data** -- provided that the Windows image runs user data scripts. This depends on the cloud provider:
+Running the script as **user data**, to install the Agent while an instance boots, is **not currently supported on stock Windows images**. YellowDog delivers user data to Windows instances in the cloud-init multi-part format, which EC2Launch v2 on standard AWS Windows AMIs does not run. Boot-time scripts therefore need an image that includes [CloudBase-Init](README.md#3-optional-download-and-install-cloudbase-init), and an image built for that purpose might as well have the Agent pre-installed, as described above.
 
-- **AWS**: Windows AMIs run user data enclosed in `<powershell>...</powershell>` tags, using EC2Launch v2.
-- **Other providers**: user data is only run if the image includes an agent that runs it, such as [CloudBase-Init](README.md#3-optional-download-and-install-cloudbase-init).
-
-The script itself must not contain the tags, so wrap it or, more compactly, use a short script that downloads and runs it. This uses much less of the user data size budget:
-
-```powershell
-<powershell>
-[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
-Invoke-RestMethod -UseBasicParsing https://raw.githubusercontent.com/yellowdog/resources/refs/heads/main/agent-install/windows/yd-agent-installer.ps1 | Invoke-Expression
-</powershell>
-```
-
-Settings are supplied by setting environment variables before the script runs, and commands placed after it run in the same PowerShell session, so they can use the `$YD_AGENT_HOME` variable and the `yd_log` function it defines. If the script fails, it ends the whole user data script.
-
-Every instance provisioned this way downloads the Agent MSI (about 100 MB). We therefore recommend against using this approach when provisioning instances at scale: use a custom image instead, with the Agent pre-installed.
+Installing at boot would also download the Agent MSI (about 100 MB) on every instance, so a custom image with the Agent pre-installed is the better choice when provisioning at scale in any case.
 
 ### Configured Worker Pool Installation
 
@@ -110,6 +103,6 @@ The following variables describe the node. Default values are provided for all o
 | `YD_PRIVATE_IP`          | The node's private IP address. Empty by default.                                                                                                   |
 | `YD_WORKER_TARGET_COUNT` | The number of workers to create per Node or per vCPU (as determined by `YD_WORKER_TARGET_TYPE`). By default, `1`.                                  |
 | `YD_WORKER_TARGET_TYPE`  | Must be set to `"PER_NODE"` or `"PER_VCPU"`. By default, `"PER_NODE"`.                                                                             |
-| `YD_URL`                 | The URL of the YellowDog Platform's REST API. By default, `https://portal.yellowdog.co/api`.                                                       |
+| `YD_URL`                 | The URL of the YellowDog Platform's REST API. By default, `https://api.yellowdog.ai`.                                                              |
 
 `application.yaml` contains the Worker Pool token, so treat it (and its backups) as a secret. Re-running the script overwrites `application.yaml`, so any changes made to it by hand will be lost, apart from the backup copy.
