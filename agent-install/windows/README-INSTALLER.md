@@ -68,9 +68,25 @@ To optimise Agent startup, set `YD_AGENT_METADATA_PROVIDERS` (e.g., `$env:YD_AGE
 
 ### Dynamic Agent Installation
 
-Running the script as **user data**, to install the Agent while an instance boots, is **not currently supported on stock Windows images**. YellowDog delivers user data to Windows instances in the cloud-init multi-part format, which EC2Launch v2 on standard AWS Windows AMIs does not run. Boot-time scripts therefore need an image that includes [CloudBase-Init](README-MANUAL.md#3-optional-download-and-install-cloudbase-init), and an image built for that purpose might as well have the Agent pre-installed, as described above.
+The script can run as **user data**, installing the latest Agent while an instance boots, on an image that includes [CloudBase-Init](README-MANUAL.md#3-optional-download-and-install-cloudbase-init). It does not run on stock Windows images: YellowDog delivers user data to Windows instances in the cloud-init multi-part format, which EC2Launch v2 on standard AWS Windows AMIs does not run, but CloudBase-Init does. This works in both Provisioned and Configured Worker Pools.
 
-Installing at boot would also download the Agent MSI (about 100 MB) on every instance, so a custom image with the Agent pre-installed is the better choice when provisioning at scale in any case.
+An image for this purpose needs CloudBase-Init but not the Agent, so it does not have to be rebuilt when a new Agent version is released. On AWS, this CloudBase-Init configuration (in `cloudbase-init.conf`) has been tested, leaving the hostname, network and Administrator password to EC2Launch v2:
+
+```ini
+metadata_services=cloudbaseinit.metadata.services.ec2service.EC2Service
+plugins=cloudbaseinit.plugins.common.userdata.UserDataPlugin
+```
+
+Supply the user data as a single PowerShell block: the settings, then the contents of the script, between `<powershell>` tags:
+
+```powershell
+<powershell>
+$env:YD_AGENT_METADATA_PROVIDERS = "AWS"
+# ... the contents of yd-agent-installer.ps1 ...
+</powershell>
+```
+
+Installing at boot downloads the Agent MSI (about 100 MB) on every instance, so a custom image with the Agent pre-installed is the better choice when provisioning at scale.
 
 ### Configured Worker Pool Installation
 
