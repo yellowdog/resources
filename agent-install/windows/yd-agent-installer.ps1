@@ -46,14 +46,14 @@ function yd_web ($Uri, $OutFile) {
   }
 }
 
-$NEXUS_SEARCH_URL = "https://nexus.yellowdog.tech/service/rest/v1/search/assets"
-$QUERY = "repository=raw-public&group=/agent/msi"
+$NEXUS_URL = "https://nexus.yellowdog.tech"
+$GROUP = "/agent/msi"
 # Nexus sorts versions as text (17.2.9 > 17.2.16), so page through every asset
 # and pick the highest
 function yd_latest_version {
   $token = $null; $versions = @()
   do {
-    $uri = "$NEXUS_SEARCH_URL`?$QUERY&name=*yd-agent-*"
+    $uri = "$NEXUS_URL/service/rest/v1/search/assets?repository=raw-public&group=$GROUP"
     if ($token) { $uri += "&continuationToken=$token" }
     try { $page = yd_web $uri } catch { yd_die "Agent version search request failed: $_" }
     foreach ($item in $page.items) {
@@ -100,7 +100,7 @@ if ((yd_v3 $INSTALLED_VERSION) -eq (yd_v3 $AGENT_VERSION)) {
   $packageName = "yd-agent-$AGENT_VERSION.msi"
   $packageFile = Join-Path $packageDir $packageName
   yd_log "Downloading Agent package $packageName"
-  try { yd_web "$NEXUS_SEARCH_URL/download?$QUERY&name=*$packageName" $packageFile | Out-Null }
+  try { yd_web "$NEXUS_URL/repository/raw-public$GROUP/$packageName" $packageFile | Out-Null }
   catch { yd_die "Agent package download failed: $_" }
 
   yd_log "Installing Agent package"
